@@ -1,0 +1,28 @@
+[project]
+name = "autoblogger"
+version = "0.1.0"
+description = "Generate articles, blog posts, etc."
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "clerk-backend-api>=3.0.3",
+    "fastapi>=0.115.12",
+    "openai>=1.84.0",
+    "pydantic>=2.11.5",
+    "pyjwt[crypto]>=2.10.1",
+    "pytest>=8.4.0",
+    "pytest-mock>=3.14.1",
+    "python-dotenv>=1.1.0",
+    "redis>=6.2.0",
+    "rich>=14.0.0",
+    "sqlalchemy>=2.0.41",
+    "tavily-python>=0.7.5",
+    "uvicorn>=0.34.3",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.0",
+    "pytest-mock>=3.14.1",
+    "ruff>=0.11.13",
+]

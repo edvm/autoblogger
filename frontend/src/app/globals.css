@@ -1,0 +1,269 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* AutoBlogger Color System - Purple-Based Creator Platform */
+    --background: 0 0% 100%; /* Pure white #FFFFFF */
+    --foreground: 215 25% 6%; /* Slate 900 #0F172A */
+    --card: 0 0% 100%;
+    --card-foreground: 215 25% 6%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 25% 6%;
+    
+    /* Brand Primary - Violet */
+    --primary: 262 83% 58%; /* Violet 600 #7C3AED */
+    --primary-foreground: 0 0% 98%;
+    
+    /* Brand Secondary - Pink */
+    --secondary: 330 81% 60%; /* Pink 500 #EC4899 */
+    --secondary-foreground: 0 0% 98%;
+    
+    /* Neutral System */
+    --muted: 210 40% 98%; /* Slate 50 #F8FAFC */
+    --muted-foreground: 215 16% 47%; /* Slate 600 #475569 */
+    --accent: 212 32% 77%; /* Slate 300 #CBD5E1 */
+    --accent-foreground: 215 25% 6%;
+    
+    /* Semantic Colors */
+    --destructive: 0 84% 60%; /* Red 500 #EF4444 */
+    --destructive-foreground: 0 0% 98%;
+    --success: 160 84% 39%; /* Emerald 500 #10B981 */
+    --success-foreground: 0 0% 98%;
+    --warning: 25 95% 53%; /* Orange 500 #F97316 */
+    --warning-foreground: 0 0% 98%;
+    --info: 217 91% 60%; /* Blue 500 #3B82F6 */
+    --info-foreground: 0 0% 98%;
+    
+    /* UI Foundation */
+    --border: 214 32% 91%; /* Slate 200 #E2E8F0 */
+    --input: 214 32% 91%;
+    --ring: 262 83% 58%; /* Violet 600 */
+    --radius: 0.75rem; /* 12px */
+    
+    /* Modal-specific styling - always dark borders */
+    --modal-border: 215 25% 15%; /* Sophisticated charcoal - always dark */
+    
+    /* AutoBlogger Custom Colors */
+    --autoblogger-violet: 262 83% 58%; /* #7C3AED */
+    --autoblogger-violet-light: 255 91% 76%; /* #8B5CF6 */
+    --autoblogger-violet-dark: 261 90% 50%; /* #6D28D9 */
+    --autoblogger-pink: 330 81% 60%; /* #EC4899 */
+    --autoblogger-orange: 25 95% 53%; /* #F97316 */
+    --autoblogger-emerald: 160 84% 39%; /* #10B981 */
+    --autoblogger-emerald-dark: 160 84% 33%; /* #059669 */
+    --autoblogger-cyan: 188 94% 43%; /* #06B6D4 */
+    --autoblogger-rose: 347 77% 50%; /* #E11D48 */
+    --autoblogger-blue: 217 91% 60%; /* #3B82F6 */
+    
+    /* Gradient Definitions */
+    --gradient-brand: linear-gradient(135deg, #7C3AED 0%, #EC4899 100%);
+    --gradient-success: linear-gradient(135deg, #10B981 0%, #06B6D4 100%);
+    --gradient-platform: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%);
+    --gradient-warm: linear-gradient(135deg, #F8FAFC 0%, #EDE9FE 100%);
+    --gradient-creator: linear-gradient(135deg, #FDF2F8 0%, #FAF5FF 100%);
+  }
+
+  .dark {
+    /* Dark Mode - AutoBlogger */
+    --background: 222 84% 5%; /* Slate 950 #020617 */
+    --foreground: 210 40% 98%; /* Slate 50 #F8FAFC */
+    --card: 217 33% 7%; /* Slate 900 #0F172A */
+    --card-foreground: 210 40% 98%;
+    --popover: 217 33% 7%;
+    --popover-foreground: 210 40% 98%;
+    
+    /* Brand colors remain vibrant in dark mode */
+    --primary: 262 83% 58%; /* Violet 600 #7C3AED */
+    --primary-foreground: 0 0% 98%;
+    --secondary: 330 81% 60%; /* Pink 500 #EC4899 */
+    --secondary-foreground: 0 0% 98%;
+    
+    /* Dark neutrals */
+    --muted: 215 28% 17%; /* Slate 800 #1E293B */
+    --muted-foreground: 217 10% 65%; /* Slate 400 #94A3B8 */
+    --accent: 215 28% 17%;
+    --accent-foreground: 210 40% 98%;
+    
+    /* Semantic colors adjusted for dark mode */
+    --destructive: 0 63% 31%; /* Darker red */
+    --destructive-foreground: 210 40% 98%;
+    --success: 160 84% 39%; /* Emerald 500 */
+    --success-foreground: 0 0% 98%;
+    --warning: 25 95% 53%; /* Orange 500 */
+    --warning-foreground: 0 0% 98%;
+    --info: 217 91% 60%; /* Blue 500 */
+    --info-foreground: 0 0% 98%;
+    
+    --border: 215 28% 17%; /* Slate 800 */
+    --input: 215 28% 17%;
+    --ring: 262 83% 58%;
+    
+    /* Modal-specific styling - consistent dark borders */
+    --modal-border: 215 25% 15%; /* Same sophisticated charcoal */
+    
+    /* Dark mode gradient overrides */
+    --gradient-warm: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+    --gradient-creator: linear-gradient(135deg, #1E293B 0%, #334155 100%);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  /* Center alignment for all content */
+  .container {
+    @apply mx-auto px-4 sm:px-6 lg:px-8;
+    max-width: 1280px; /* Consistent max width */
+  }
+  
+  /* Responsive center alignment */
+  .center-content {
+    @apply flex flex-col items-center justify-center min-h-screen;
+  }
+  
+  /* Gradient utility classes */
+  .bg-gradient-brand {
+    background: var(--gradient-brand);
+  }
+  
+  .bg-gradient-success {
+    background: var(--gradient-success);
+  }
+  
+  .bg-gradient-platform {
+    background: var(--gradient-platform);
+  }
+  
+  .bg-gradient-warm {
+    background: var(--gradient-warm);
+  }
+  
+  .bg-gradient-creator {
+    background: var(--gradient-creator);
+  }
+  
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    @apply bg-muted;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-primary rounded-full;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-primary/80;
+  }
+}
+
+/* Animation utilities */
+@layer utilities {
+  .animate-gentle-pulse {
+    animation: gentle-pulse 4s ease-in-out infinite;
+  }
+  
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+  
+  @keyframes gentle-pulse {
+    0%, 100% {
+      opacity: 0.3;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.6;
+      transform: scale(1.05);
+    }
+  }
+  
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+  
+  @keyframes fade-in {
+    0% {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .animate-fade-in {
+    animation: fade-in 0.5s ease-out forwards;
+  }
+}
+
+/* Enhanced Modal Shadow System - Apple/Netflix inspired */
+@layer utilities {
+  .modal-shadow-enhanced {
+    box-shadow: 
+      /* Border definition */
+      0 0 0 1px rgba(0, 0, 0, 0.05),
+      /* Main elevation shadow */
+      0 20px 40px -8px rgba(0, 0, 0, 0.25),
+      /* Depth shadow */
+      0 8px 16px -4px rgba(0, 0, 0, 0.15),
+      /* Ambient diffusion */
+      0 40px 80px -16px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.3s ease-out;
+  }
+  
+  .dark .modal-shadow-enhanced {
+    box-shadow: 
+      /* Enhanced border definition in dark mode */
+      0 0 0 1px rgba(0, 0, 0, 0.1),
+      /* Stronger main shadow for depth */
+      0 20px 40px -8px rgba(0, 0, 0, 0.4),
+      /* More pronounced depth */
+      0 8px 16px -4px rgba(0, 0, 0, 0.25),
+      /* Wider ambient diffusion */
+      0 40px 80px -16px rgba(0, 0, 0, 0.2);
+  }
+  
+  .modal-border-enhanced {
+    border: 1px solid hsl(var(--modal-border));
+  }
+  
+  /* Subtle glow effect on focus/hover for modals */
+  .modal-glow:focus-within {
+    box-shadow: 
+      0 0 0 1px rgba(0, 0, 0, 0.05),
+      0 20px 40px -8px rgba(0, 0, 0, 0.25),
+      0 8px 16px -4px rgba(0, 0, 0, 0.15),
+      0 40px 80px -16px rgba(0, 0, 0, 0.1),
+      /* Subtle violet glow */
+      0 0 0 2px rgba(124, 58, 237, 0.1);
+  }
+  
+  .dark .modal-glow:focus-within {
+    box-shadow: 
+      0 0 0 1px rgba(0, 0, 0, 0.1),
+      0 20px 40px -8px rgba(0, 0, 0, 0.4),
+      0 8px 16px -4px rgba(0, 0, 0, 0.25),
+      0 40px 80px -16px rgba(0, 0, 0, 0.2),
+      /* Enhanced violet glow in dark mode */
+      0 0 0 2px rgba(124, 58, 237, 0.2);
+  }
+}

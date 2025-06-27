@@ -1,0 +1,18 @@
+# Core Libraries
+python-dotenv
+pydantic
+openai
+rich  # For pretty logging
+redis
+
+# API Framework
+fastapi
+uvicorn[standard]
+sqlalchemy
+pyjwt[crypto]
+httpx
+python-multipart
+
+# Tooling
+tavily-python
+clerk-backend-api

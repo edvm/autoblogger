@@ -1,0 +1,11 @@
+{
+  "instances": [
+    {
+      "prompt": "A rust crab hacker programming in Rust"
+    }
+  ],
+  "parameters": {
+    "storageUri": null,
+    "sampleCount": "2"
+  }
+}
