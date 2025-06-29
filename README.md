@@ -45,6 +45,17 @@ AutoBlogger combines advanced AI agents with modern web technologies to automati
 
 ### 1. Environment Setup
 
+Before anything, be sure you have `uv` and `node` + `npm` installed. If not, here's how:
+```bash
+# Install uv:
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+
+# Install nvm (then node):
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+nvm install --lts
+```
+Finally, `make install`.
+
 ```bash
 # Clone the repository
 git clone <repository-url>
