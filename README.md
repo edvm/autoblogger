@@ -54,7 +54,6 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
 nvm install --lts
 ```
-Finally, `make install`.
 
 ```bash
 # Clone the repository
@@ -62,7 +61,7 @@ git clone <repository-url>
 cd autoblogger-py
 
 # Backend environment
-cp backend/env.example backend/.env
+touch backend/.env
 # Edit backend/.env with your API keys:
 # OPENAI_API_KEY=sk-...
 # TAVILY_API_KEY=tvly-...
