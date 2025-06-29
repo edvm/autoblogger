@@ -48,7 +48,7 @@ AutoBlogger combines advanced AI agents with modern web technologies to automati
 Before anything, be sure you have `uv` and `node` + `npm` installed. If not, here's how:
 ```bash
 # Install uv:
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # Install nvm (then node):
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
