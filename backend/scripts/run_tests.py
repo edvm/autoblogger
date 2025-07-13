@@ -44,7 +44,7 @@ def run_core_tests():
     cmd = ["uv", "run", "python", "-m", "pytest"] + test_files + ["-v"]
 
     try:
-        result = subprocess.run(cmd, cwd=Path(__file__).parent.parent, check=True)
+        subprocess.run(cmd, cwd=Path(__file__).parent.parent, check=True)
         print("\n✅ All core tests passed!")
         return True
     except subprocess.CalledProcessError as e:
