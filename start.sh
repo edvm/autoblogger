@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# AutoBlogger Startup Script
-# This script exports environment variables and starts both backend and frontend
+# AutoBlogger Backend Startup Script
+# This script exports environment variables and starts the backend API service
 
 set -e
 
-echo "🚀 Starting AutoBlogger..."
+echo "🚀 Starting AutoBlogger Backend Service..."
 
 # Color codes for output
 RED='\033[0;31m'
