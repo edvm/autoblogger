@@ -20,8 +20,8 @@ AutoBlogger is a content generation platform that uses a multi-agent architectur
 ### Prerequisites
 
 - Python 3.13+
-- OpenAI API key
-- Tavily API key
+- **LLM API Key**: Either OpenAI API key OR Google Gemini API key
+- Tavily API key (for web search)
 
 ### Installation
 
@@ -37,14 +37,27 @@ pip install -r requirements.txt
 
 2. Create environment file:
 ```bash
-cp env.example .env
+# Create .env file in the backend directory
+touch .env
 ```
 
-3. Configure your API keys in `.env`:
-```
+3. Configure your API keys and LLM provider in `.env`:
+
+**For OpenAI (default):**
+```env
+LLM_PROVIDER=openai
 OPENAI_API_KEY=your_openai_key_here
 TAVILY_API_KEY=your_tavily_key_here
 ```
+
+**For Google Gemini:**
+```env
+LLM_PROVIDER=gemini
+GEMINI_API_KEY=your_gemini_key_here
+TAVILY_API_KEY=your_tavily_key_here
+```
+
+**Note**: If `LLM_PROVIDER` is not set, the system defaults to OpenAI.
 
 ### Usage
 
@@ -82,7 +95,9 @@ python run_api.py
 
 ### Services
 
-- **OpenAIService**: Handles LLM interactions with configurable models
+- **LLM Services**: Configurable LLM providers (OpenAI or Google Gemini)
+  - **OpenAIService**: GPT-4 and other OpenAI models
+  - **GeminiService**: Google Gemini 2.5 Flash and other Gemini models
 - **TavilySearch**: Web search integration for research
 - **FastAPI**: REST API for web frontend integration
 
@@ -128,12 +143,36 @@ uv add --dev package-name
 
 Environment variables are loaded from `.env`:
 
+### Required Variables
 ```env
-OPENAI_API_KEY=your_openai_key
-TAVILY_API_KEY=your_tavily_key
+# LLM Provider Configuration
+LLM_PROVIDER=openai  # or 'gemini' (defaults to 'openai')
+
+# API Keys (choose based on LLM_PROVIDER)
+OPENAI_API_KEY=your_openai_key      # Required if LLM_PROVIDER=openai
+GEMINI_API_KEY=your_gemini_key      # Required if LLM_PROVIDER=gemini
+
+# Search API
+TAVILY_API_KEY=your_tavily_key      # Required for web research
+
+# Authentication (optional for API usage)
 CLERK_SECRET_KEY=your_clerk_secret
+
+# Database (optional, defaults to SQLite)
 DATABASE_URL=sqlite:///./autoblogger.db
 ```
+
+### LLM Provider Details
+
+**OpenAI Models:**
+- Fast Model: `gpt-4.1-nano-2025-04-14`
+- Large Model: `gpt-4.1-nano-2025-04-14`
+
+**Gemini Models:**
+- Fast Model: `gemini-2.5-flash`
+- Large Model: `gemini-2.5-flash`
+
+The system automatically selects the appropriate models based on your `LLM_PROVIDER` setting.
 
 ## Output
 
