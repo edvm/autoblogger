@@ -1,225 +1,301 @@
-# GitHub Workflows Documentation
+# AutoBlogger
 
-This directory contains GitHub Actions workflows for the AutoBlogger project. These workflows provide comprehensive CI/CD, security scanning, and automated dependency management.
+🤖 An AI-powered full-stack blog generation platform that creates high-quality articles using a multi-agent workflow system.
 
-## 📋 Workflow Overview
+## Overview
 
-### 🔧 Main CI/CD Pipeline (`ci.yml`)
+AutoBlogger combines advanced AI agents with modern web technologies to automatically generate well-researched, professionally written blog posts. The system uses specialized agents for research, writing, and editing to produce comprehensive articles on any topic.
 
-**Triggers:** Push to main/develop, Pull Requests, Manual dispatch
+### Key Features
 
-**Purpose:** Main continuous integration pipeline that runs tests, quality checks, and builds.
+- **Multi-Agent AI System**: Specialized agents for research, writing, and editing
+- **Web Research Integration**: Real-time web search using Tavily API
+- **Professional Web Interface**: Modern Next.js frontend with authentication
+- **Credit-Based System**: User management with credit tracking
+- **Real-Time Updates**: Live status updates during blog generation
+- **Multiple Output Formats**: Markdown files with detailed logs
+- **Dark/Light Mode**: Full theme support
+- **Responsive Design**: Works on desktop, tablet, and mobile
 
-**Jobs:**
-- **Backend Tests** - Python 3.11 & 3.13 matrix testing with both OpenAI and Gemini providers
-- **Frontend Tests** - Node.js 18 & 20 matrix testing with TypeScript checks
-- **Security Scan** - Bandit, Safety, npm audit, and dependency analysis
-- **CodeQL Analysis** - GitHub's semantic code analysis for security vulnerabilities
-- **Docker Build** - Multi-architecture container builds and testing
-- **Integration Tests** - End-to-end testing with real services
-- **CI Success** - Summary job that reports overall pipeline status
+## Architecture
 
-**Features:**
-- ✅ Matrix testing across Python and Node.js versions
-- ✅ LLM provider testing (OpenAI and Gemini)
-- ✅ Comprehensive code coverage reporting
-- ✅ Intelligent dependency caching
-- ✅ Multi-architecture Docker builds
-- ✅ Artifact upload for test results and coverage
+### Backend (Python)
+- **Framework**: FastAPI with SQLAlchemy
+- **AI Integration**: OpenAI GPT models
+- **Search**: Tavily web search API
+- **Authentication**: Clerk JWT validation
+- **Database**: SQLite with user and credit management
+- **Agent System**: Multi-agent workflow with state management
 
-### 🔒 Security Scanning (`security.yml`)
+### Frontend (Next.js)
+- **Framework**: Next.js 15 with App Router
+- **Authentication**: Clerk integration
+- **Styling**: Tailwind CSS with custom design system
+- **State Management**: React with API client
+- **Components**: Radix UI primitives with custom styling
 
-**Triggers:** Daily at 2 AM UTC, Push to main, Pull Requests, Manual dispatch
+## Quick Start
 
-**Purpose:** Comprehensive security analysis and vulnerability detection.
+### Prerequisites
+- Python 3.13+
+- Node.js 18+
+- OpenAI API key
+- Tavily API key
+- Clerk account (for web interface)
 
-**Jobs:**
-- **Dependency Review** - Reviews new dependencies in PRs for security issues
-- **Python Security** - Bandit static analysis, Safety dependency checks, Semgrep analysis
-- **Node.js Security** - npm audit, Snyk vulnerability scanning
-- **Container Security** - Trivy vulnerability scanning for Docker images
-- **Secret Scanning** - GitLeaks analysis for accidentally committed secrets
-- **Security Summary** - Consolidated security report
+### 1. Environment Setup
 
-**Features:**
-- ✅ Automated daily security scans
-- ✅ Multiple security tools for comprehensive coverage
-- ✅ SARIF integration with GitHub Security tab
-- ✅ Configurable severity thresholds
-- ✅ Security report artifacts
-
-### 🚀 Release & Deploy (`release.yml`)
-
-**Triggers:** Tags (v*), Push to main, Manual dispatch
-
-**Purpose:** Automated releases, Docker image publishing, and deployments.
-
-**Jobs:**
-- **Create Release** - Automatic changelog generation and GitHub release creation
-- **Build & Publish** - Multi-architecture Docker image builds and registry publishing
-- **Deploy** - Environment-specific deployments (staging/production)
-- **Notify** - Deployment status notifications and summaries
-
-**Features:**
-- ✅ Automatic semantic versioning
-- ✅ Changelog generation from git commits
-- ✅ Multi-architecture Docker builds (AMD64, ARM64)
-- ✅ GitHub Container Registry publishing
-- ✅ Environment-specific deployment strategies
-- ✅ Deployment status notifications
-
-### 🤖 Dependency Management (`dependabot.yml`)
-
-**Purpose:** Automated dependency updates across all package ecosystems.
-
-**Configurations:**
-- **Python Backend** - Weekly updates for pip packages with grouping
-- **Node.js Frontend** - Weekly updates for npm packages with grouping
-- **GitHub Actions** - Weekly updates for action versions
-- **Docker** - Weekly updates for base images
-
-**Features:**
-- ✅ Intelligent package grouping (testing, security, UI, etc.)
-- ✅ Configurable update schedules
-- ✅ Automatic labeling and assignment
-- ✅ Version update type filtering
-- ✅ Security-focused dependency management
-
-## 🔧 Configuration Files
-
-### `dependency-review-config.yml`
-Configuration for dependency review action with:
-- License allowlist (MIT, Apache-2.0, BSD, etc.)
-- Vulnerability severity thresholds
-- Package deny/allow lists
-- Custom security policies
-
-### Backend `pyproject.toml` Enhancements
-Added comprehensive tool configurations:
-- **pytest** - Test discovery, coverage, and reporting
-- **coverage** - Branch coverage and exclusion rules  
-- **ruff** - Linting and formatting rules
-- **mypy** - Type checking configuration
-
-## 🚀 Getting Started
-
-### 1. Required Secrets
-
-Add these secrets to your GitHub repository settings:
-
+Before anything, be sure you have `uv` and `node` + `npm` installed. If not, here's how:
 ```bash
-# Optional - for enhanced security scanning
-CODECOV_TOKEN=your_codecov_token
-SEMGREP_APP_TOKEN=your_semgrep_token  
-SNYK_TOKEN=your_snyk_token
-GITLEAKS_LICENSE=your_gitleaks_license
+# Install uv:
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# Optional - for testing with real APIs
-TAVILY_API_KEY_TEST=your_test_tavily_key
-CLERK_SECRET_KEY_TEST=your_test_clerk_key
-CLERK_PUBLISHABLE_KEY_TEST=your_test_clerk_key
+# Install nvm (then node):
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+nvm install --lts
 ```
 
-### 2. Environment Setup
+```bash
+# Clone the repository
+git clone <repository-url>
+cd autoblogger-py
 
-Ensure your repository has:
-- Protected main branch
-- Required status checks enabled
-- Branch protection rules configured
+# Backend environment
+touch backend/.env
+# Edit backend/.env with your API keys:
+# OPENAI_API_KEY=sk-...
+# TAVILY_API_KEY=tvly-...
+# CLERK_SECRET_KEY=sk_test_...
+# CLERK_PUBLISHABLE_KEY=pk_test_...
+```
 
-### 3. Workflow Permissions
+### 2. Backend Setup
 
-The workflows require these permissions:
-- `contents: read/write` (for releases)
-- `packages: write` (for Docker registry)
-- `security-events: write` (for security scanning)
-- `actions: read` (for workflow access)
+```bash
+# Install dependencies
+cd backend
+uv sync
 
-## 📊 Quality Gates
+# Run CLI directly (optional)
+uv run python cli.py "Your blog topic here"
 
-All workflows enforce these quality standards:
+# Or start the API server
+uv run python run_api.py
+```
 
-### ✅ Code Quality
-- All tests must pass (unit, integration, security)
-- Code coverage > 80%
-- No linting or formatting violations
-- TypeScript type checking passes
-- No high/critical security vulnerabilities
+### 3. Frontend Setup
 
-### ✅ Security Standards
-- Dependency vulnerability scanning
-- Static code analysis (Bandit, Semgrep)
-- Container image scanning (Trivy)
-- Secret detection (GitLeaks)
-- License compliance checking
+```bash
+# Install dependencies
+cd frontend
+npm install
 
-### ✅ Build Standards
-- Multi-architecture Docker builds
-- Successful builds across all supported environments
-- Integration test validation
-- Performance benchmark compliance
+# Start development server
+npm run dev
+```
 
-## 🎯 Workflow Triggers
+### 4. Quick Start (Both Services)
 
-### Automatic Triggers
-- **Push to main/develop** → Full CI pipeline + security scan
-- **Pull Request** → CI pipeline + dependency review
-- **Tag creation (v*)** → Release pipeline + deployment
-- **Daily 2 AM UTC** → Security scanning
-- **Weekly Tuesday** → Dependency updates
+```bash
+# From project root - starts both backend and frontend
+./start.sh
+```
 
-### Manual Triggers
-- All workflows support `workflow_dispatch` for manual execution
-- Release workflow supports custom version and environment inputs
-- Security workflow can be triggered for immediate vulnerability assessment
+Access the application:
+- **Frontend**: http://localhost:3000
+- **Backend API**: http://localhost:8000
+- **API Documentation**: http://localhost:8000/docs
 
-## 🔍 Monitoring & Debugging
+## Usage
 
-### Workflow Status
-- Check the Actions tab for workflow execution status
-- Review job summaries for quick status overview
-- Download artifacts for detailed analysis
+### CLI Mode
+Generate blog posts directly from command line:
 
-### Security Reports
-- Security findings are uploaded to GitHub Security tab
-- Detailed reports available as workflow artifacts
-- Daily security scan summaries in workflow logs
+```bash
+cd backend
+uv run python cli.py "Latest developments in AI technology"
+```
 
-### Coverage Reports
-- Codecov integration provides coverage tracking
-- HTML coverage reports available as artifacts
-- Coverage trends visible in PR comments
+Generated articles are saved to `backend/outputs/` as:
+- `{topic}.md` - The final article
+- `{topic}_log.json` - Complete workflow state and logs
 
-## 🚀 Performance Optimizations
+### Web Interface
+1. Sign up/Login at http://localhost:3000
+2. Navigate to Dashboard
+3. Enter your blog topic
+4. Monitor real-time generation progress
+5. View and download completed articles
 
-### Caching Strategy
-- **UV dependencies** - Cached with lockfile fingerprint
-- **npm dependencies** - Cached with package-lock.json
-- **Docker layers** - GitHub Actions cache for faster builds
-- **Python packages** - Cached for consistent environments
+## Agent Workflow
 
-### Parallel Execution
-- Matrix testing runs jobs in parallel
-- Independent job execution for faster feedback
-- Conditional job execution based on changes
+The system uses a sophisticated multi-agent approach:
 
-### Resource Optimization
-- Targeted job execution based on file changes
-- Efficient artifact handling and retention
-- Optimized Docker layer caching
+### 1. Research Agent
+- Conducts comprehensive web research using Tavily API
+- Gathers current information and sources
+- Populates research brief with findings
 
-## 📚 Additional Resources
+### 2. Writing Agent
+- Creates initial draft based on research
+- Structures content with proper formatting
+- Develops comprehensive article outline
 
-- [GitHub Actions Documentation](https://docs.github.com/en/actions)
-- [AutoBlogger Setup Guide](../backend/docs/HOWTO_SETUP.md)
-- [Security Best Practices](https://docs.github.com/en/code-security)
-- [Dependabot Configuration](https://docs.github.com/en/code-security/dependabot)
+### 3. Editor Agent
+- Reviews and refines the draft
+- Ensures quality, coherence, and readability
+- Produces final polished article
 
-## 🤝 Contributing
+All agents operate on a shared `WorkflowState` that tracks progress, logs actions, and maintains content through the pipeline.
 
-When modifying workflows:
-1. Test changes in a fork first
-2. Use `workflow_dispatch` for testing
-3. Update this documentation
-4. Follow the existing patterns and naming conventions
-5. Ensure backward compatibility
+## Development
+
+### Backend Commands
+
+```bash
+# Install dependencies
+uv sync
+
+# Run tests
+uv run pytest backend/tests/
+
+# Code quality
+uv run ruff check backend/
+uv run ruff format backend/
+
+# Start API server
+uv run python backend/run_api.py
+
+# CLI usage
+uv run python backend/cli.py "Your topic"
+```
+
+### Frontend Commands
+
+```bash
+# Install dependencies
+npm install
+
+# Development server
+npm run dev
+
+# Build for production
+npm run build
+
+# Start production server
+npm start
+
+# Linting
+npm run lint
+```
+
+## API Endpoints
+
+### Authentication
+- `POST /api/v1/users/me` - Get/update user information
+
+### Credits
+- `GET /api/v1/credits/balance` - Check credit balance
+- `GET /api/v1/credits/transactions` - Transaction history
+- `POST /api/v1/credits/purchase` - Purchase credits
+
+### Blog Generation
+- `GET /api/v1/apps/` - List available apps
+- `POST /api/v1/apps/blogger/generate` - Generate blog post
+- `GET /api/v1/apps/blogger/usage/{usage_id}` - Check generation status
+- `GET /api/v1/apps/usage/history` - Usage history
+
+## Configuration
+
+### Backend Environment Variables
+- `OPENAI_API_KEY` - OpenAI API key (required)
+- `TAVILY_API_KEY` - Tavily search API key (required)
+- `CLERK_SECRET_KEY` - Clerk authentication (required for API)
+- `CLERK_PUBLISHABLE_KEY` - Clerk public key (required for API)
+- `DATABASE_URL` - Database URL (optional, defaults to SQLite)
+
+### Frontend Environment Variables
+- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` - Clerk public key
+- `CLERK_SECRET_KEY` - Clerk secret key
+- `NEXT_PUBLIC_API_BASE_URL` - Backend API URL (defaults to http://localhost:8000)
+
+## Project Structure
+
+```
+autoblogger-py/
+├── backend/                 # Python backend
+│   ├── agents/             # AI agent implementations
+│   ├── api/                # FastAPI application
+│   ├── apps/               # Application modules
+│   ├── configs/            # Configuration files
+│   ├── core/               # Core services (LLM, state)
+│   ├── tools/              # Utility tools (search)
+│   ├── outputs/            # Generated articles
+│   ├── tests/              # Test suite
+│   ├── cli.py              # CLI interface
+│   └── run_api.py          # API server
+├── frontend/               # Next.js frontend
+│   ├── src/
+│   │   ├── app/           # Next.js App Router pages
+│   │   ├── components/    # React components
+│   │   └── lib/           # Utilities and API client
+│   ├── package.json       # Frontend dependencies
+│   └── next.config.ts     # Next.js configuration
+├── start.sh               # Quick start script
+└── README.md              # This file
+```
+
+## Database Schema
+
+### Users
+- User management with Clerk integration
+- Credit balance tracking
+- Account status and metadata
+
+### Credit Transactions
+- Purchase and usage tracking
+- Transaction history
+- Balance calculations
+
+### App Usage
+- Blog generation history
+- Status tracking (pending/in_progress/completed/failed)
+- Generated content storage
+
+### Usage Logs
+- Detailed execution logs
+- Agent-level tracking
+- Performance metrics
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Follow existing code conventions
+4. Add tests for new functionality
+5. Ensure all tests pass
+6. Submit a pull request
+
+### Code Style
+- Backend: Follow Python PEP 8, use Ruff for formatting
+- Frontend: Follow Next.js/React conventions, use ESLint
+- Commit messages: Use conventional commit format
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Support
+
+- Documentation: Check the CLAUDE.md files in each directory
+- Issues: Create an issue on GitHub
+- API Documentation: http://localhost:8000/docs when running
+
+## Roadmap
+
+- [x] Multiple LLM provider support
+- [ ] Advanced article templates
+- [ ] Bulk generation capabilities
+- [ ] Social media integration
+- [ ] Advanced analytics dashboard
+- [ ] Plugin system for custom agents
