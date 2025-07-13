@@ -229,7 +229,7 @@ class TestBloggerManagerAgent:
         self, blogger_manager_agent, basic_workflow_state
     ):
         """Test that workflow state progresses correctly through agents."""
-        result_state = blogger_manager_agent.execute(basic_workflow_state)
+        blogger_manager_agent.execute(basic_workflow_state)
 
         # Verify each agent received the state and updated it
         research_agent = blogger_manager_agent.research_agent

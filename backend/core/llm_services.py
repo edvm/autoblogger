@@ -170,7 +170,7 @@ class OpenAIService(LLMService):
             return LLMServiceResponse(content=content, usage=token_usage)
         except Exception as e:
             logger.error(f"An error occurred while querying the OpenAI API: {e}")
-            raise LLMServiceException(f"Error querying OpenAI API: {e}")
+            raise LLMServiceException(f"Error querying OpenAI API: {e}") from e
 
 
 class GeminiService(LLMService):
@@ -248,7 +248,7 @@ class GeminiService(LLMService):
             return LLMServiceResponse(content=content, usage=token_usage)
         except Exception as e:
             logger.error(f"An error occurred while querying the Gemini API: {e}")
-            raise LLMServiceException(f"Error querying Gemini API: {e}")
+            raise LLMServiceException(f"Error querying Gemini API: {e}") from e
 
 
 def create_llm_service(

@@ -16,8 +16,6 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-"""Main FastAPI application for AutoBlogger API."""
-
 import uvicorn
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -34,6 +32,8 @@ from core.middleware import (
 
 # Import routers
 from .routers import apps, credits, users
+
+"""Main FastAPI application for AutoBlogger API."""
 
 # Initialize FastAPI app
 app = FastAPI(

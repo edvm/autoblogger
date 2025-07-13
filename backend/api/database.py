@@ -16,8 +16,6 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-"""Database configuration and models for AutoBlogger API."""
-
 import os
 from collections.abc import Generator
 from datetime import datetime
@@ -35,6 +33,8 @@ from sqlalchemy import (
 )
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session, relationship, sessionmaker
+
+"""Database configuration and models for AutoBlogger API."""
 
 # Database URL - SQLite for development
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./autoblogger.db")

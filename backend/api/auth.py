@@ -16,9 +16,6 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-"""Authentication utilities for Clerk integration."""
-
-
 from clerk_backend_api import AuthenticateRequestOptions, Clerk
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -28,6 +25,8 @@ from configs.config import CLERK_SECRET_KEY
 from configs.logging_config import logger
 
 from .database import User, get_db
+
+"""Authentication utilities for Clerk integration."""
 
 # Security scheme
 security = HTTPBearer()
@@ -99,7 +98,7 @@ async def get_clerk_user(request: Request) -> ClerkUser:
         logger.error(f"Failed to authenticate request: {e}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication failed"
-        )
+        ) from e
 
     if not request_state.is_signed_in:
         logger.error("User is not signed in")
@@ -129,7 +128,7 @@ async def get_clerk_user(request: Request) -> ClerkUser:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Failed to get user information",
-        )
+        ) from e
 
     if not user_response:
         logger.error(f"User not found for user_id: {user_id}")
