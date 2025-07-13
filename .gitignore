@@ -273,3 +273,5 @@ temp/
 tmp/
 
 *.db
+
+pytest-report.xml
