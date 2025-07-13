@@ -25,6 +25,7 @@ from core.llm_services import (
     LLMUsage,
     LLMServiceException,
     OpenAIService,
+    GeminiService,
     query_llm,
 )
 from core.state import WorkflowState
@@ -167,6 +168,20 @@ class TestOpenAIService:
 
         assert "Error querying OpenAI API: API Error" in str(exc_info.value)
 
+    def test_openai_service_missing_api_key(self):
+        """Test OpenAIService initialization with missing API key."""
+        with pytest.raises(LLMServiceException) as exc_info:
+            OpenAIService(api_key="")
+
+        assert "OPENAI_API_KEY is required but not provided" in str(exc_info.value)
+
+    def test_openai_service_none_api_key(self):
+        """Test OpenAIService initialization with None API key."""
+        with pytest.raises(LLMServiceException) as exc_info:
+            OpenAIService(api_key=None)
+
+        assert "OPENAI_API_KEY is required but not provided" in str(exc_info.value)
+
 
 class TestQueryLLM:
     """Test cases for query_llm function."""
@@ -291,3 +306,150 @@ class TestQueryLLM:
         # Should have log entries including the error
         assert len(state.run_log) == 2
         assert "Error: LLM query failed" in state.run_log[1]
+
+
+class TestGeminiService:
+    """Test cases for GeminiService."""
+
+    def test_gemini_service_initialization_success(self, mocker):
+        """Test successful GeminiService initialization."""
+        mock_genai_module = mocker.Mock()
+        mock_client = mocker.Mock()
+        mock_genai_module.Client.return_value = mock_client
+
+        mocker.patch("core.llm_services.genai", mock_genai_module)
+        service = GeminiService(api_key="test-gemini-key")
+        assert service.client == mock_client
+        mock_genai_module.Client.assert_called_once_with(api_key="test-gemini-key")
+
+    def test_gemini_service_missing_package(self, mocker):
+        """Test GeminiService initialization when google.genai package is missing."""
+        mocker.patch("core.llm_services.genai", None)
+        with pytest.raises(LLMServiceException) as exc_info:
+            GeminiService(api_key="test-key")
+
+        assert "google-genai package not installed" in str(exc_info.value)
+
+    def test_gemini_service_missing_api_key(self, mocker):
+        """Test GeminiService initialization with missing API key."""
+        mock_genai_module = mocker.Mock()
+
+        mocker.patch("core.llm_services.genai", mock_genai_module)
+        with pytest.raises(LLMServiceException) as exc_info:
+            GeminiService(api_key="")
+
+        assert "GEMINI_API_KEY is required but not provided" in str(exc_info.value)
+
+    def test_gemini_service_none_api_key(self, mocker):
+        """Test GeminiService initialization with None API key."""
+        mock_genai_module = mocker.Mock()
+
+        mocker.patch("core.llm_services.genai", mock_genai_module)
+        with pytest.raises(LLMServiceException) as exc_info:
+            GeminiService(api_key=None)
+
+        assert "GEMINI_API_KEY is required but not provided" in str(exc_info.value)
+
+    def test_generate_response_success(self, mocker):
+        """Test successful response generation."""
+        mock_genai_module = mocker.Mock()
+        mock_client = mocker.Mock()
+        mock_genai_module.Client.return_value = mock_client
+
+        mock_response = mocker.Mock()
+        mock_response.text = "Generated Gemini content"
+        mock_client.models.generate_content.return_value = mock_response
+
+        mocker.patch("core.llm_services.genai", mock_genai_module)
+        service = GeminiService(api_key="test-gemini-key")
+
+        result = service.generate_response(
+            prompt="Test prompt",
+            system_message="Test system message",
+            model="gemini-2.5-flash",
+            temperature=0.8,
+            max_tokens=2000,
+        )
+
+        assert result.content == "Generated Gemini content"
+        assert result.usage is not None
+        assert result.usage.total_tokens == int(
+            len("Generated Gemini content".split()) * 1.3
+        )
+
+        # Verify the client was called correctly
+        expected_prompt = "Test system message\n\nUser: Test prompt"
+        mock_client.models.generate_content.assert_called_once_with(
+            model="gemini-2.5-flash",
+            contents=expected_prompt,
+            config={
+                "temperature": 0.8,
+                "max_output_tokens": 2000,
+            },
+        )
+
+    def test_generate_response_no_text(self, mocker):
+        """Test response generation when response has no text attribute."""
+        mock_genai_module = mocker.Mock()
+        mock_client = mocker.Mock()
+        mock_genai_module.Client.return_value = mock_client
+
+        mock_response = mocker.Mock()
+        # Remove text attribute to simulate missing text
+        if hasattr(mock_response, "text"):
+            delattr(mock_response, "text")
+        mock_client.models.generate_content.return_value = mock_response
+
+        mocker.patch("core.llm_services.genai", mock_genai_module)
+        service = GeminiService(api_key="test-gemini-key")
+
+        result = service.generate_response(
+            prompt="Test prompt",
+            system_message="Test system message",
+            model="gemini-2.5-flash",
+        )
+
+        assert result.content is None
+        assert result.usage is None
+
+    def test_generate_response_empty_text(self, mocker):
+        """Test response generation when response text is empty."""
+        mock_genai_module = mocker.Mock()
+        mock_client = mocker.Mock()
+        mock_genai_module.Client.return_value = mock_client
+
+        mock_response = mocker.Mock()
+        mock_response.text = ""
+        mock_client.models.generate_content.return_value = mock_response
+
+        mocker.patch("core.llm_services.genai", mock_genai_module)
+        service = GeminiService(api_key="test-gemini-key")
+
+        result = service.generate_response(
+            prompt="Test prompt",
+            system_message="Test system message",
+            model="gemini-2.5-flash",
+        )
+
+        assert result.content == ""
+        assert result.usage is None
+
+    def test_generate_response_api_error(self, mocker):
+        """Test response generation when API call fails."""
+        mock_genai_module = mocker.Mock()
+        mock_client = mocker.Mock()
+        mock_genai_module.Client.return_value = mock_client
+
+        mock_client.models.generate_content.side_effect = Exception("Gemini API Error")
+
+        mocker.patch("core.llm_services.genai", mock_genai_module)
+        service = GeminiService(api_key="test-gemini-key")
+
+        with pytest.raises(LLMServiceException) as exc_info:
+            service.generate_response(
+                prompt="Test prompt",
+                system_message="Test system message",
+                model="gemini-2.5-flash",
+            )
+
+        assert "Error querying Gemini API: Gemini API Error" in str(exc_info.value)

@@ -19,7 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import os
 from typing import Optional
 from decorators import require_env_vars
-from core.llm_services import LLMService, OpenAIService
+from core.llm_services import LLMService, create_llm_service
 from core.state import WorkflowState
 from configs.logging_config import logger
 from agents import ResearchAgent, WritingAgent, EditorAgent
@@ -273,7 +273,7 @@ class BloggerApp:
         return final_state
 
 
-@require_env_vars("OPENAI_API_KEY", "TAVILY_API_KEY", "CLERK_SECRET_KEY")
+@require_env_vars("TAVILY_API_KEY", "CLERK_SECRET_KEY")
 def get_blogger_app(
     output_dir: str = "outputs",
     search_depth: str = "basic",
@@ -290,8 +290,8 @@ def get_blogger_app(
 ) -> BloggerApp:
     """Factory function to create and return a fully configured BloggerApp instance.
 
-    This function creates a BloggerApp with default OpenAI LLM service and Tavily search tool,
-    and configures search parameters through SearchConfig.
+    This function creates a BloggerApp with the configured LLM service (OpenAI or Gemini based
+    on LLM_PROVIDER setting) and Tavily search tool, and configures search parameters through SearchConfig.
 
     Args:
         output_dir: Directory where generated blog posts will be saved.
@@ -311,18 +311,20 @@ def get_blogger_app(
         A fully configured and built BloggerApp instance ready to use.
 
     Raises:
-        EnvironmentError: If OPENAI_API_KEY is not set in environment variables.
+        EnvironmentError: If the required API key for the configured LLM provider is not set.
     """
     include_domains = include_domains or []
     exclude_domains = exclude_domains or []
 
     from tools.search import TavilySearch
+    from core.llm_services import LLMServiceException
 
-    if not config.OPENAI_API_KEY:
-        logger.error("OPENAI_API_KEY is not set in the environment variables.")
-        raise EnvironmentError("OPENAI_API_KEY must be set to run the autoblogger.")
-
-    llm_service = OpenAIService(api_key=config.OPENAI_API_KEY)
+    try:
+        llm_service = create_llm_service()
+        logger.info(f"Using LLM provider: {config.LLM_PROVIDER}")
+    except LLMServiceException as e:
+        logger.error(f"Failed to create LLM service: {e}")
+        raise EnvironmentError(f"LLM service configuration error: {e}")
 
     # Create SearchConfig with provided parameters
     search_tool = TavilySearch()

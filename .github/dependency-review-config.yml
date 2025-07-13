@@ -1,0 +1,54 @@
+version: 1
+
+# Configuration for the Dependency Review Action
+# See: https://github.com/actions/dependency-review-action
+
+# License configuration
+license_check: true
+allowed_licenses:
+  - "MIT"
+  - "Apache-2.0"
+  - "BSD-2-Clause"
+  - "BSD-3-Clause"
+  - "ISC"
+  - "CC0-1.0"
+  - "Unlicense"
+  - "GPL-3.0"  # For AGPL compatibility
+  - "LGPL-2.1"
+  - "LGPL-3.0"
+
+# Vulnerability severity thresholds
+fail_on_severity: 'moderate'  # Fail on moderate or higher
+warn_on_severity: 'low'       # Warn on low or higher
+
+# Allowed vulnerability scoring systems
+allowed_scopes:
+  - "runtime"
+  - "development"
+
+# Custom vulnerability database
+vulnerability_check: true
+
+# Block specific packages
+deny_packages:
+  - name: "lodash"
+    version: "< 4.17.19"  # Known security issues
+  - name: "axios"
+    version: "< 0.21.1"   # Known security issues
+
+# Allow specific packages despite vulnerabilities (use carefully)
+allow_vulnerabilities:
+  # Example: temporarily allow a package with known low-severity issues
+  # - name: "example-package"
+  #   version: "1.0.0"
+  #   severity: "low"
+
+# Comment configuration
+comment_summary_in_pr: true
+retry_on_snapshot_warnings: true
+retry_on_snapshot_warnings_timeout: 120
+
+# Additional configuration
+warn_only: false
+base_ref: null  # Use default base branch
+head_ref: null  # Use default head branch

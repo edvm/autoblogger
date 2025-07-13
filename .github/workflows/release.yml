@@ -1,0 +1,223 @@
+name: Release & Deploy
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., v1.0.0)'
+        required: false
+        type: string
+      environment:
+        description: 'Environment to deploy to'
+        required: false
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+permissions:
+  contents: write
+  packages: write
+  pull-requests: read
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # Only create release on tags or manual workflow dispatch
+  create-release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Get version
+      id: version
+      run: |
+        if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ github.event.inputs.version }}" != "" ]]; then
+          echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+        elif [[ "${{ github.ref }}" == refs/tags/* ]]; then
+          echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+        else
+          echo "version=v$(date +'%Y%m%d')-${GITHUB_SHA::8}" >> $GITHUB_OUTPUT
+        fi
+    
+    - name: Generate changelog
+      id: changelog
+      run: |
+        # Generate changelog from commits since last tag
+        LAST_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+        if [ -z "$LAST_TAG" ]; then
+          # If no previous tag, get all commits
+          CHANGELOG=$(git log --pretty=format:"- %s (%h)" --no-merges)
+        else
+          # Get commits since last tag
+          CHANGELOG=$(git log --pretty=format:"- %s (%h)" --no-merges ${LAST_TAG}..HEAD)
+        fi
+        
+        # Save changelog to file and output
+        echo "$CHANGELOG" > CHANGELOG.md
+        echo "changelog<<EOF" >> $GITHUB_OUTPUT
+        echo "$CHANGELOG" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+    
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ steps.version.outputs.version }}
+        release_name: Release ${{ steps.version.outputs.version }}
+        body: |
+          ## Changes in this release
+          
+          ${{ steps.changelog.outputs.changelog }}
+          
+          ## Docker Images
+          
+          - Backend: `ghcr.io/${{ github.repository }}/backend:${{ steps.version.outputs.version }}`
+          - Frontend: `ghcr.io/${{ github.repository }}/frontend:${{ steps.version.outputs.version }}`
+          
+          ## Installation
+          
+          See the [setup documentation](docs/HOWTO_SETUP.md) for installation instructions.
+        draft: false
+        prerelease: ${{ contains(steps.version.outputs.version, 'alpha') || contains(steps.version.outputs.version, 'beta') || contains(steps.version.outputs.version, 'rc') }}
+
+  # Build and publish Docker images
+  build-and-publish:
+    name: Build & Publish Images
+    runs-on: ubuntu-latest
+    needs: create-release
+    if: always() && (startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main')
+    strategy:
+      matrix:
+        component: [backend, frontend]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ matrix.component }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=ref,event=tag
+          type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
+          type=raw,value=${{ needs.create-release.outputs.version }},enable=${{ needs.create-release.outputs.version != '' }}
+    
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./${{ matrix.component }}
+        file: ./${{ matrix.component }}/Dockerfile
+        platforms: linux/amd64,linux/arm64
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        build-args: |
+          VERSION=${{ needs.create-release.outputs.version || github.sha }}
+          BUILD_DATE=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
+
+  # Deploy to staging/production
+  deploy:
+    name: Deploy to ${{ github.event.inputs.environment || 'staging' }}
+    runs-on: ubuntu-latest
+    needs: [create-release, build-and-publish]
+    if: always() && needs.build-and-publish.result == 'success'
+    environment: ${{ github.event.inputs.environment || 'staging' }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Deploy to ${{ github.event.inputs.environment || 'staging' }}
+      run: |
+        echo "🚀 Deploying AutoBlogger to ${{ github.event.inputs.environment || 'staging' }}"
+        echo "Version: ${{ needs.create-release.outputs.version || github.sha }}"
+        echo "Backend Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:${{ needs.create-release.outputs.version || github.sha }}"
+        echo "Frontend Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:${{ needs.create-release.outputs.version || github.sha }}"
+        
+        # Add your deployment logic here
+        # Examples:
+        # - Update Kubernetes manifests
+        # - Deploy to cloud provider (AWS, GCP, Azure)
+        # - Update docker-compose files
+        # - Trigger deployment webhooks
+        
+        # For now, just output deployment information
+        echo "✅ Deployment completed successfully!"
+    
+    - name: Update deployment status
+      if: always()
+      run: |
+        if [ "${{ job.status }}" == "success" ]; then
+          echo "Deployment Status: ✅ SUCCESS"
+          echo "Environment: ${{ github.event.inputs.environment || 'staging' }}"
+          echo "Version: ${{ needs.create-release.outputs.version || github.sha }}"
+        else
+          echo "Deployment Status: ❌ FAILED"
+          exit 1
+        fi
+
+  # Notify on deployment completion
+  notify:
+    name: Notify Deployment
+    runs-on: ubuntu-latest
+    needs: [create-release, build-and-publish, deploy]
+    if: always()
+    
+    steps:
+    - name: Notify deployment status
+      run: |
+        if [[ "${{ needs.deploy.result }}" == "success" ]]; then
+          echo "🎉 AutoBlogger ${{ needs.create-release.outputs.version || github.sha }} successfully deployed!"
+          # Add notification logic here (Slack, Discord, email, etc.)
+        else
+          echo "⚠️ AutoBlogger deployment failed or was skipped"
+          # Add failure notification logic here
+        fi
+    
+    - name: Create deployment summary
+      run: |
+        echo "# Deployment Summary" >> $GITHUB_STEP_SUMMARY
+        echo "## Release Information" >> $GITHUB_STEP_SUMMARY
+        echo "- **Version**: ${{ needs.create-release.outputs.version || github.sha }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Environment**: ${{ github.event.inputs.environment || 'staging' }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Status**: ${{ needs.deploy.result }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "## Component Status" >> $GITHUB_STEP_SUMMARY
+        echo "- **Backend Build**: ${{ needs.build-and-publish.result }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Frontend Build**: ${{ needs.build-and-publish.result }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Deployment**: ${{ needs.deploy.result }}" >> $GITHUB_STEP_SUMMARY

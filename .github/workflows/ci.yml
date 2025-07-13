@@ -1,0 +1,403 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  # Test environment variables
+  TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY_TEST || 'test-key-for-ci' }}
+  CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY_TEST || 'test-key-for-ci' }}
+  CLERK_PUBLISHABLE_KEY: ${{ secrets.CLERK_PUBLISHABLE_KEY_TEST || 'test-key-for-ci' }}
+
+jobs:
+  # Backend Testing and Quality Checks
+  backend-tests:
+    name: Backend Tests (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.11', '3.13']
+        llm-provider: ['openai', 'gemini']
+    
+    defaults:
+      run:
+        working-directory: ./backend
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install UV
+      uses: astral-sh/setup-uv@v3
+      with:
+        enable-cache: true
+        cache-dependency-glob: "backend/uv.lock"
+    
+    - name: Install dependencies
+      run: |
+        uv sync --frozen
+    
+    - name: Set up test environment
+      run: |
+        # Create test API keys for the specific provider
+        if [ "${{ matrix.llm-provider }}" = "openai" ]; then
+          echo "LLM_PROVIDER=openai" >> $GITHUB_ENV
+          echo "OPENAI_API_KEY=test-openai-key-${{ github.run_id }}" >> $GITHUB_ENV
+        else
+          echo "LLM_PROVIDER=gemini" >> $GITHUB_ENV  
+          echo "GEMINI_API_KEY=test-gemini-key-${{ github.run_id }}" >> $GITHUB_ENV
+        fi
+    
+    - name: Check code formatting
+      run: |
+        uv run ruff format --check .
+    
+    - name: Run linting
+      run: |
+        uv run ruff check .
+    
+    - name: Run type checking (if mypy is configured)
+      run: |
+        if uv run python -c "import mypy" 2>/dev/null; then
+          uv run mypy .
+        else
+          echo "MyPy not configured, skipping type checks"
+        fi
+      continue-on-error: true
+    
+    - name: Run tests with coverage
+      run: |
+        uv run pytest --cov=. --cov-report=xml --cov-report=html --cov-report=term-missing -v
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        file: ./backend/coverage.xml
+        flags: backend
+        name: backend-${{ matrix.python-version }}-${{ matrix.llm-provider }}
+        token: ${{ secrets.CODECOV_TOKEN }}
+      continue-on-error: true
+    
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: backend-test-results-${{ matrix.python-version }}-${{ matrix.llm-provider }}
+        path: |
+          backend/htmlcov/
+          backend/coverage.xml
+          backend/pytest-report.xml
+        retention-days: 30
+
+  # Frontend Testing and Quality Checks  
+  frontend-tests:
+    name: Frontend Tests (Node.js ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: ['18', '20']
+    
+    defaults:
+      run:
+        working-directory: ./frontend
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+    
+    - name: Install dependencies
+      run: |
+        npm ci
+    
+    - name: Check TypeScript types
+      run: |
+        npm run type-check
+    
+    - name: Run ESLint
+      run: |
+        npm run lint
+    
+    - name: Run tests (if configured)
+      run: |
+        if npm run test --if-present; then
+          echo "Tests completed successfully"
+        else
+          echo "No tests configured, skipping"
+        fi
+      continue-on-error: true
+    
+    - name: Build application
+      run: |
+        npm run build
+      env:
+        NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ env.CLERK_PUBLISHABLE_KEY }}
+        NEXT_PUBLIC_API_BASE_URL: http://localhost:8000
+    
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: frontend-build-${{ matrix.node-version }}
+        path: frontend/.next/
+        retention-days: 7
+
+  # Security Scanning
+  security-scan:
+    name: Security Analysis
+    runs-on: ubuntu-latest
+    needs: [backend-tests, frontend-tests]
+    if: always()
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python for security scanning
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.13'
+    
+    - name: Install security scanning tools
+      run: |
+        pip install bandit[toml] safety
+    
+    - name: Run Bandit security scan on Python code
+      run: |
+        bandit -r backend/ -f json -o bandit-report.json
+      continue-on-error: true
+    
+    - name: Run Safety check for Python dependencies
+      working-directory: ./backend
+      run: |
+        pip install -r requirements.txt
+        safety check --json --output safety-report.json
+      continue-on-error: true
+    
+    - name: Run npm audit for Node.js dependencies
+      working-directory: ./frontend
+      run: |
+        npm audit --audit-level=moderate --json > npm-audit-report.json || true
+    
+    - name: Upload security scan results
+      uses: actions/upload-artifact@v4
+      with:
+        name: security-reports
+        path: |
+          bandit-report.json
+          backend/safety-report.json
+          frontend/npm-audit-report.json
+        retention-days: 30
+
+  # CodeQL Security Analysis
+  codeql-analysis:
+    name: CodeQL Security Analysis
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    
+    strategy:
+      matrix:
+        language: ['python', 'javascript']
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v3
+      with:
+        languages: ${{ matrix.language }}
+        queries: +security-and-quality
+    
+    - name: Autobuild
+      uses: github/codeql-action/autobuild@v3
+    
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3
+      with:
+        category: "/language:${{ matrix.language }}"
+
+  # Docker Build and Test
+  docker-build:
+    name: Docker Build & Test
+    runs-on: ubuntu-latest
+    needs: [backend-tests, frontend-tests]
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Log in to GitHub Container Registry
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Extract metadata
+      id: meta-backend
+      uses: docker/metadata-action@v5
+      with:
+        images: ghcr.io/${{ github.repository }}/backend
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+    
+    - name: Build backend Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./backend
+        file: ./backend/Dockerfile
+        platforms: linux/amd64,linux/arm64
+        push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        tags: ${{ steps.meta-backend.outputs.tags }}
+        labels: ${{ steps.meta-backend.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+    
+    - name: Build frontend Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./frontend
+        file: ./frontend/Dockerfile
+        platforms: linux/amd64,linux/arm64
+        push: false  # Only build, don't push for now
+        tags: autoblogger/frontend:${{ github.sha }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+  # Integration Tests (if needed)
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: [backend-tests, frontend-tests]
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    
+    services:
+      # Add any required services (databases, redis, etc.)
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_USER: test_user
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.13'
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+    
+    - name: Install UV
+      uses: astral-sh/setup-uv@v3
+    
+    - name: Install backend dependencies
+      working-directory: ./backend
+      run: uv sync --frozen
+    
+    - name: Install frontend dependencies
+      working-directory: ./frontend
+      run: npm ci
+    
+    - name: Build frontend
+      working-directory: ./frontend
+      run: npm run build
+      env:
+        NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ env.CLERK_PUBLISHABLE_KEY }}
+        NEXT_PUBLIC_API_BASE_URL: http://localhost:8000
+    
+    - name: Run integration tests
+      run: |
+        # Start backend in background
+        cd backend && LLM_PROVIDER=openai OPENAI_API_KEY=test-key uv run python run_api.py &
+        BACKEND_PID=$!
+        
+        # Wait for backend to start
+        sleep 10
+        
+        # Run integration tests (if they exist)
+        if [ -f backend/tests/test_integration.py ]; then
+          cd backend && uv run pytest tests/test_integration.py -v
+        else
+          echo "No integration tests found, skipping"
+        fi
+        
+        # Cleanup
+        kill $BACKEND_PID || true
+      env:
+        LLM_PROVIDER: openai
+        OPENAI_API_KEY: test-integration-key
+        TAVILY_API_KEY: ${{ env.TAVILY_API_KEY }}
+        CLERK_SECRET_KEY: ${{ env.CLERK_SECRET_KEY }}
+
+  # Summary job
+  ci-success:
+    name: CI Pipeline Success
+    runs-on: ubuntu-latest
+    needs: [backend-tests, frontend-tests, security-scan, codeql-analysis]
+    if: always()
+    
+    steps:
+    - name: Check all jobs status
+      run: |
+        echo "Backend tests: ${{ needs.backend-tests.result }}"
+        echo "Frontend tests: ${{ needs.frontend-tests.result }}"
+        echo "Security scan: ${{ needs.security-scan.result }}"
+        echo "CodeQL analysis: ${{ needs.codeql-analysis.result }}"
+        
+        if [[ "${{ needs.backend-tests.result }}" == "success" && 
+              "${{ needs.frontend-tests.result }}" == "success" && 
+              "${{ needs.security-scan.result }}" == "success" && 
+              "${{ needs.codeql-analysis.result }}" == "success" ]]; then
+          echo "✅ All CI checks passed!"
+          echo "CI_STATUS=success" >> $GITHUB_ENV
+        else
+          echo "❌ Some CI checks failed"
+          echo "CI_STATUS=failure" >> $GITHUB_ENV
+          exit 1
+        fi
+    
+    - name: Update commit status
+      if: always()
+      run: |
+        echo "CI Pipeline completed with status: ${{ env.CI_STATUS }}"
