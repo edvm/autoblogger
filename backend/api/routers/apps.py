@@ -18,7 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """App consumption endpoints."""
 
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks, Request
 from fastapi.responses import Response
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
@@ -31,6 +31,7 @@ from ..auth import get_current_user
 from .credits import consume_credits
 from apps.blogger import get_blogger_app
 from core.state import WorkflowState
+from core.middleware import expensive_rate_limit, standard_rate_limit
 from utils.filename import sanitize_filename_for_download
 
 router = APIRouter()
@@ -125,7 +126,9 @@ AVAILABLE_APPS = {
 
 
 @router.get("/usage/history", response_model=List[AppUsageResponse])
+@standard_rate_limit()
 async def get_app_usage_history(
+    request: Request,
     limit: int = 50,
     offset: int = 0,
     app_name: Optional[str] = None,
@@ -146,7 +149,9 @@ async def get_app_usage_history(
 
 
 @router.post("/blogger/generate", response_model=BloggerAppResponse)
+@expensive_rate_limit()
 async def generate_blog_post(
+    request_obj: Request,
     request: BloggerAppRequest,
     background_tasks: BackgroundTasks,
     current_user: User = Depends(get_current_user),
@@ -200,7 +205,9 @@ async def generate_blog_post(
 
 
 @router.get("/blogger/usage/{usage_id}", response_model=BloggerAppResponse)
+@standard_rate_limit()
 async def get_blogger_usage_status(
+    request: Request,
     usage_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),

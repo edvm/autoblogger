@@ -18,12 +18,22 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """Main FastAPI application for AutoBlogger API."""
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 import uvicorn
 
 # Import routers
 from .routers import users, apps, credits
+
+# Import configuration and middleware
+from configs.config import ALLOWED_ORIGINS, ENVIRONMENT
+from core.middleware import (
+    SecurityHeadersMiddleware, 
+    InputSanitizationMiddleware,
+    setup_rate_limiting
+)
+from core.exceptions import AutobloggerException, map_exception_to_http
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -34,14 +44,42 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
-# Configure CORS
+# Configure security middleware
+app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(InputSanitizationMiddleware)
+
+# Configure CORS with environment-specific settings
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Configure appropriately for production
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=[
+        "Accept",
+        "Accept-Language", 
+        "Content-Language",
+        "Content-Type",
+        "Authorization",
+        "X-Requested-With"
+    ],
 )
+
+# Set up rate limiting
+setup_rate_limiting(app)
+
+# Global exception handler for custom exceptions
+@app.exception_handler(AutobloggerException)
+async def autoblogger_exception_handler(request: Request, exc: AutobloggerException):
+    """Handle custom Autoblogger exceptions."""
+    http_exc = map_exception_to_http(exc)
+    return JSONResponse(
+        status_code=http_exc.status_code,
+        content={
+            "error": http_exc.detail,
+            "error_code": http_exc.error_code,
+            "details": exc.details
+        }
+    )
 
 # Include routers
 app.include_router(users.router, prefix="/api/v1/users", tags=["users"])

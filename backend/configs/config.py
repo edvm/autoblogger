@@ -47,6 +47,31 @@ LARGE_LLM_MODEL = GEMINI_LARGE_MODEL if LLM_PROVIDER == "gemini" else OPENAI_LAR
 # Clerk configuration
 CLERK_SECRET_KEY = os.getenv("CLERK_SECRET_KEY")
 
+# Security configuration
+ENVIRONMENT = os.getenv("ENVIRONMENT", "development").lower()
+
+# CORS configuration - secure defaults for production
+if ENVIRONMENT == "production":
+    ALLOWED_ORIGINS = [
+        origin.strip() 
+        for origin in os.getenv("ALLOWED_ORIGINS", "").split(",") 
+        if origin.strip()
+    ]
+    if not ALLOWED_ORIGINS:
+        raise ValueError("ALLOWED_ORIGINS must be set in production environment")
+else:
+    # Development defaults
+    ALLOWED_ORIGINS = [
+        "http://localhost:3000",
+        "http://localhost:3001", 
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:3001"
+    ]
+
+# Rate limiting configuration
+RATE_LIMIT_REQUESTS = int(os.getenv("RATE_LIMIT_REQUESTS", "100"))
+RATE_LIMIT_WINDOW = int(os.getenv("RATE_LIMIT_WINDOW", "60"))  # seconds
+
 # --- Validate that keys are set ---
 # Note: OPENAI_API_KEY and GEMINI_API_KEY validation is now handled at service level
 if not TAVILY_API_KEY:

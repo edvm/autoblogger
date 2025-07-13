@@ -19,7 +19,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import json
 from .base_agent import AbstractAgent
 from core.state import WorkflowState
-from core.llm_services import LLMService, query_llm, ERROR_FLAG
+from core.llm_services import LLMService, query_llm
+from core.exceptions import ErrorConstants
 from tools.search import SearchTool, SearchConfig
 from configs.config import FAST_LLM_MODEL
 from configs.logging_config import logger
@@ -111,7 +112,7 @@ class ResearchAgent(AbstractAgent):
             raise
 
         try:
-            if brief_str == ERROR_FLAG:  # Handle error coming from query_llm
+            if brief_str == ErrorConstants.LLM_NO_RESPONSE:  # Handle error coming from query_llm
                 logger.error("LLM query returned an error string.")
                 state.log_entry("Error: Research Agent received error from LLM query.")
                 state.research_brief = {"error": "LLM query failed to produce content."}

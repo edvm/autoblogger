@@ -25,6 +25,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import openai
 from abc import ABC, abstractmethod
 from .state import WorkflowState
+from .exceptions import LLMServiceError, ErrorConstants
 from configs.config import GEMINI_API_KEY
 from configs.logging_config import logger
 
@@ -32,8 +33,6 @@ try:
     from google import genai
 except ImportError:
     genai = None
-
-ERROR_FLAG = "fucked up"
 
 
 class LLMServiceException(Exception):
@@ -358,7 +357,7 @@ def query_llm(
         if content is None or content == "":
             logger.warning(f"LLM returned None or empty content for model {model}.")
             state.log_entry(f"Warning: LLM returned no content for model {model}.")
-            return ERROR_FLAG
+            return ErrorConstants.LLM_NO_RESPONSE
         return content.strip()
 
     except Exception as e:

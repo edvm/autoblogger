@@ -28,6 +28,7 @@ from core.llm_services import (
     GeminiService,
     query_llm,
 )
+from core.exceptions import ErrorConstants
 from core.state import WorkflowState
 
 
@@ -239,7 +240,7 @@ class TestQueryLLM:
             model="gpt-3.5-turbo",
         )
 
-        assert result == "fucked up"  # ERROR_FLAG value
+        assert result == ErrorConstants.LLM_NO_RESPONSE
 
         # Verify warning was logged
         assert len(state.run_log) == 2
@@ -261,7 +262,7 @@ class TestQueryLLM:
             model="gpt-3.5-turbo",
         )
 
-        assert result == "fucked up"  # ERROR_FLAG value
+        assert result == ErrorConstants.LLM_NO_RESPONSE
 
     def test_query_llm_no_usage_info(self, mocker):
         """Test LLM query without usage information."""
