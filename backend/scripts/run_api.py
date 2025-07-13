@@ -18,17 +18,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import uvicorn
 
-
 """Script to run the AutoBlogger API server."""
 
 if __name__ == "__main__":
     import sys
     from pathlib import Path
-    
+
     # Add backend directory to Python path
     backend_dir = Path(__file__).parent.parent
     sys.path.insert(0, str(backend_dir))
-    
+
     # Create database tables
     print("Creating database tables...")
     from api.database import create_tables
