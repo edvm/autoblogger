@@ -31,6 +31,7 @@ if __name__ == "__main__":
     # Create database tables
     print("Creating database tables...")
     from api.database import create_tables
+
     create_tables()
     print("Database tables created successfully!")
 
