@@ -48,7 +48,7 @@ jobs:
         python-version: '3.13'
     
     - name: Install UV
-      uses: astral-sh/setup-uv@v3
+      uses: astral-sh/setup-uv@v6
     
     - name: Install dependencies
       run: |

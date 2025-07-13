@@ -37,7 +37,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
     
     - name: Install UV
-      uses: astral-sh/setup-uv@v3
+      uses: astral-sh/setup-uv@v6
       with:
         enable-cache: true
         cache-dependency-glob: "backend/uv.lock"
@@ -329,7 +329,7 @@ jobs:
         cache-dependency-path: frontend/package-lock.json
     
     - name: Install UV
-      uses: astral-sh/setup-uv@v3
+      uses: astral-sh/setup-uv@v6
     
     - name: Install backend dependencies
       working-directory: ./backend
