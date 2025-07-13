@@ -61,7 +61,7 @@ trap cleanup SIGINT SIGTERM
 # Start backend
 echo -e "${BLUE}🔧 Starting backend API server...${NC}"
 cd backend
-uv run python run_api.py &
+uv run python scripts/run_api.py &
 BACKEND_PID=$!
 cd ..
 echo -e "${GREEN}✅ Backend started (PID: $BACKEND_PID)${NC}"
