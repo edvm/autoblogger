@@ -1,319 +1,197 @@
-# AutoBlogger API
+# AutoBlogger Backend
 
-🤖 An AI-powered backend service for generating high-quality blog articles using a sophisticated multi-agent workflow system.
+An AI-powered blog generation system that creates high-quality articles using web research and multi-agent processing.
 
 ## Overview
 
-AutoBlogger is a Python-based API service that combines advanced AI agents with web research capabilities to automatically generate well-researched, professionally written blog posts. The system uses specialized agents for research, writing, and editing to produce comprehensive articles on any topic.
+AutoBlogger is a content generation platform that uses a multi-agent architecture to research topics, write drafts, and edit final articles. It combines web search capabilities with OpenAI's language models to produce well-researched, engaging content.
 
-**Primary interfaces:**
-- **CLI Tool**: Direct command-line blog generation
-- **REST API**: Integration with external applications and services
-- **Web Demo** *(optional)*: Simple web interface for testing and demonstrations
+## Features
 
-### Key Features
-
-- **Multi-Agent AI System**: Specialized agents for research, writing, and editing
-- **Web Research Integration**: Real-time web search using Tavily API
-- **CLI Interface**: Direct command-line blog generation for automation
-- **REST API**: Full-featured API for integration with external systems
-- **Credit-Based System**: User management with usage tracking
-- **Real-Time Status**: Live progress updates via API endpoints
-- **Multiple Output Formats**: Markdown files with detailed JSON logs
-- **Extensible Architecture**: Easy to integrate with existing workflows
-
-## Architecture
-
-### Core Backend Service (Python)
-- **Framework**: FastAPI with SQLAlchemy for robust API development
-- **AI Integration**: OpenAI GPT models with structured response handling
-- **Search**: Tavily web search API for real-time research
-- **Authentication**: Clerk JWT validation for secure API access
-- **Database**: SQLite with user and credit management (easily replaceable)
-- **Agent System**: Multi-agent workflow with centralized state management
-
-### Optional Web Interface
-- **Framework**: Next.js demo interface (located in `frontend/` directory)
-- **Purpose**: Testing and demonstration of API capabilities
-- **Note**: All functionality available via CLI and API without web interface
+- **Multi-Agent Architecture**: Specialized agents for research, writing, and editing
+- **Real-time Web Research**: Integration with Tavily search for current information
+- **FastAPI REST API**: Modern API for web applications
+- **User Authentication**: Clerk integration for secure user management
+- **Credit System**: Usage tracking and billing management
+- **Multiple Output Formats**: Markdown articles with JSON metadata
 
 ## Quick Start
 
 ### Prerequisites
+
 - Python 3.13+
-- OpenAI API key
-- Tavily API key
-- Clerk account (optional, for API authentication)
+- **LLM API Key**: Either OpenAI API key OR Google Gemini API key
+- Tavily API key (for web search)
 
-### 1. Install Python Dependency Manager
+### Installation
 
+1. Install dependencies using uv (recommended):
 ```bash
-# Install uv (recommended Python package manager):
-curl -LsSf https://astral.sh/uv/install.sh | sh
+uv sync
 ```
 
-### 2. Setup Backend
-
+Or with pip:
 ```bash
-# Clone the repository
-git clone <repository-url>
-cd autoblogger
+pip install -r requirements.txt
+```
 
-# Install dependencies
-cd backend
-uv sync
-
-# Create environment file
+2. Create environment file:
+```bash
+# Create .env file in the backend directory
 touch .env
-# Edit .env with your API keys:
-# OPENAI_API_KEY=sk-...
-# TAVILY_API_KEY=tvly-...
-# CLERK_SECRET_KEY=sk_test_... (optional)
-# CLERK_PUBLISHABLE_KEY=pk_test_... (optional)
 ```
 
-### 3. Start Using AutoBlogger
+3. Configure your API keys and LLM provider in `.env`:
 
-#### Option A: CLI Mode (Recommended)
+**For OpenAI (default):**
+```env
+LLM_PROVIDER=openai
+OPENAI_API_KEY=your_openai_key_here
+TAVILY_API_KEY=your_tavily_key_here
+```
+
+**For Google Gemini:**
+```env
+LLM_PROVIDER=gemini
+GEMINI_API_KEY=your_gemini_key_here
+TAVILY_API_KEY=your_tavily_key_here
+```
+
+**Note**: If `LLM_PROVIDER` is not set, the system defaults to OpenAI.
+
+### Usage
+
+#### CLI Mode
 ```bash
-# Generate a blog post directly
-uv run python cli.py "Your blog topic here"
+# Direct execution
+python cli.py "Your Topic Here"
 
-# Articles saved to outputs/ directory
+# Using uv (recommended)
+uv run python cli.py "Your Topic"
 ```
 
-#### Option B: API Server
-```bash
-# Start the API server
-./start.sh
-# Or manually: uv run python scripts/run_api.py
-```
-
-Access the API:
-- **Backend API**: http://localhost:8000
-- **API Documentation**: http://localhost:8000/docs
-
-#### Option C: Web Demo (Optional)
-```bash
-# Install Node.js dependencies
-cd ../frontend
-npm install
-
-# Start development server
-npm run dev
-
-# Access at: http://localhost:3000
-```
-
-## Usage
-
-### CLI Mode (Primary Interface)
-Generate blog posts directly from command line:
-
-```bash
-cd backend
-uv run python cli.py "Latest developments in AI technology"
-```
-
-Generated articles are saved to `backend/outputs/` as:
-- `{topic}.md` - The final article
-- `{topic}_log.json` - Complete workflow state and logs
-
-### API Integration
-Use the REST API to integrate with your applications:
-
+#### API Mode
 ```bash
 # Start the API server
-./start.sh
+uvicorn api.main:app --reload
 
-# Generate via API
-curl -X POST "http://localhost:8000/api/v1/apps/blogger/generate" \
-  -H "Content-Type: application/json" \
-  -d '{"topic": "Your topic here"}'
-
-# Check status
-curl "http://localhost:8000/api/v1/apps/blogger/usage/{usage_id}"
+# Or using the provided script
+python run_api.py
 ```
 
-### Web Demo (Optional)
-For testing and demonstration purposes:
-1. Start both backend and frontend
-2. Sign up/Login at http://localhost:3000
-3. Enter your blog topic and monitor progress
-4. View and download completed articles
+## Architecture
 
-## Agent Workflow
+### Core Components
 
-The system uses a sophisticated multi-agent approach:
+- **WorkflowState**: Central state management for the entire generation process
+- **AbstractAgent**: Base class for all specialized agents
+- **BloggerManagerAgent**: Orchestrates the complete workflow
 
-### 1. Research Agent
-- Conducts comprehensive web research using Tavily API
-- Gathers current information and sources
-- Populates research brief with findings
+### Agent Pipeline
 
-### 2. Writing Agent
-- Creates initial draft based on research
-- Structures content with proper formatting
-- Develops comprehensive article outline
+1. **ResearchAgent**: Conducts web research using Tavily search
+2. **WritingAgent**: Creates draft content based on research findings
+3. **EditorAgent**: Refines and finalizes the content
 
-### 3. Editor Agent
-- Reviews and refines the draft
-- Ensures quality, coherence, and readability
-- Produces final polished article
+### Services
 
-All agents operate on a shared `WorkflowState` that tracks progress, logs actions, and maintains content through the pipeline.
-
-## Development
-
-### Backend Development (Primary Focus)
-
-```bash
-# Install dependencies
-cd backend
-uv sync
-
-# Run tests
-uv run pytest tests/
-
-# Code quality checks
-uv run ruff check .
-uv run ruff format .
-
-# Start API server for development
-uv run python scripts/run_api.py
-
-# CLI usage and testing
-uv run python cli.py "Your topic"
-```
-
-### Optional: Frontend Demo Development
-
-```bash
-# Only if working on the demo interface
-cd frontend
-npm install
-npm run dev
-npm run lint
-```
+- **LLM Services**: Configurable LLM providers (OpenAI or Google Gemini)
+  - **OpenAIService**: GPT-4 and other OpenAI models
+  - **GeminiService**: Google Gemini 2.5 Flash and other Gemini models
+- **TavilySearch**: Web search integration for research
+- **FastAPI**: REST API for web frontend integration
 
 ## API Endpoints
 
-### Authentication
-- `POST /api/v1/users/me` - Get/update user information
+- `POST /apps/blogger/generate` - Generate blog content
+- `GET /users/profile` - User profile management
+- `GET /credits/balance` - Check credit balance
 
-### Credits
-- `GET /api/v1/credits/balance` - Check credit balance
-- `GET /api/v1/credits/transactions` - Transaction history
-- `POST /api/v1/credits/purchase` - Purchase credits
+## Development
 
-### Blog Generation
-- `GET /api/v1/apps/` - List available apps
-- `POST /api/v1/apps/blogger/generate` - Generate blog post
-- `GET /api/v1/apps/blogger/usage/{usage_id}` - Check generation status
-- `GET /api/v1/apps/usage/history` - Usage history
+### Testing
+```bash
+# Run all tests
+pytest
+
+# Run with verbose output
+pytest -v
+
+# Run specific test modules
+pytest tests/unittests/agents/
+```
+
+### Code Quality
+```bash
+# Lint and fix issues
+ruff check --fix
+
+# Format code
+ruff format
+```
+
+### Adding Dependencies
+```bash
+# Add runtime dependency
+uv add package-name
+
+# Add development dependency
+uv add --dev package-name
+```
 
 ## Configuration
 
-### Required Environment Variables (backend/.env)
-- `OPENAI_API_KEY` - OpenAI API key (required for AI agents)
-- `TAVILY_API_KEY` - Tavily search API key (required for research)
+Environment variables are loaded from `.env`:
 
-### Optional Environment Variables
-- `CLERK_SECRET_KEY` - Clerk authentication (for API access control)
-- `CLERK_PUBLISHABLE_KEY` - Clerk public key (for API access control)
-- `DATABASE_URL` - Database URL (defaults to SQLite: `sqlite:///./autoblogger.db`)
+### Required Variables
+```env
+# LLM Provider Configuration
+LLM_PROVIDER=openai  # or 'gemini' (defaults to 'openai')
 
-### Web Demo Configuration (if using frontend)
-Create `frontend/.env.local`:
-- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` - Clerk public key
-- `CLERK_SECRET_KEY` - Clerk secret key
-- `NEXT_PUBLIC_API_BASE_URL` - Backend URL (defaults to http://localhost:8000)
+# API Keys (choose based on LLM_PROVIDER)
+OPENAI_API_KEY=your_openai_key      # Required if LLM_PROVIDER=openai
+GEMINI_API_KEY=your_gemini_key      # Required if LLM_PROVIDER=gemini
 
-## Project Structure
+# Search API
+TAVILY_API_KEY=your_tavily_key      # Required for web research
 
-```
-autoblogger/
-├── backend/                 # Core Python backend service
-│   ├── agents/             # AI agent implementations
-│   │   ├── research_agent.py    # Web research agent
-│   │   ├── writing_agent.py     # Content writing agent
-│   │   └── editor_agent.py      # Content editing agent
-│   ├── api/                # FastAPI application
-│   │   ├── main.py         # API server setup
-│   │   └── routers/        # API route handlers
-│   ├── apps/               # Application modules
-│   │   └── blogger.py      # Blog generation logic
-│   ├── core/               # Core services
-│   │   ├── llm_services.py # OpenAI integration
-│   │   └── state.py        # Workflow state management
-│   ├── tools/              # Utility tools
-│   │   └── search.py       # Tavily search integration
-│   ├── outputs/            # Generated articles and logs
-│   ├── tests/              # Comprehensive test suite
-│   ├── cli.py              # CLI interface
-│   └── scripts/run_api.py  # API server launcher
-├── frontend/               # Optional web demo interface
-│   ├── src/app/           # Next.js pages
-│   ├── src/components/    # React components
-│   └── package.json       # Frontend dependencies
-├── start.sh               # Backend startup script
-└── README.md              # This file
+# Authentication (optional for API usage)
+CLERK_SECRET_KEY=your_clerk_secret
+
+# Database (optional, defaults to SQLite)
+DATABASE_URL=sqlite:///./autoblogger.db
 ```
 
-## Database Schema
+### LLM Provider Details
 
-### Users
-- User management with Clerk integration
-- Credit balance tracking
-- Account status and metadata
+**OpenAI Models:**
+- Fast Model: `gpt-4.1-nano-2025-04-14`
+- Large Model: `gpt-4.1-nano-2025-04-14`
 
-### Credit Transactions
-- Purchase and usage tracking
-- Transaction history
-- Balance calculations
+**Gemini Models:**
+- Fast Model: `gemini-2.5-flash`
+- Large Model: `gemini-2.5-flash`
 
-### App Usage
-- Blog generation history
-- Status tracking (pending/in_progress/completed/failed)
-- Generated content storage
+The system automatically selects the appropriate models based on your `LLM_PROVIDER` setting.
 
-### Usage Logs
-- Detailed execution logs
-- Agent-level tracking
-- Performance metrics
+## Output
+
+Generated articles are saved to the `outputs/` directory:
+- `topic_name.md` - The final article in Markdown format
+- `topic_name_log.json` - Generation metadata and logs
+
+## License
+
+This project is licensed under the GNU Affero General Public License v3.0 - see the LICENSE file for details.
 
 ## Contributing
 
 1. Fork the repository
 2. Create a feature branch
-3. Follow existing code conventions
-4. Add tests for new functionality
-5. Ensure all tests pass
-6. Submit a pull request
-
-### Code Style
-- **Backend** (primary): Follow Python PEP 8, use Ruff for formatting
-- **Frontend** (demo only): Follow Next.js/React conventions, use ESLint
-- **Commit messages**: Use conventional commit format
-- **Focus**: Backend API and CLI improvements take priority
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
+3. Make your changes
+4. Run tests and linting
+5. Submit a pull request
 
 ## Support
 
-- **API Documentation**: http://localhost:8000/docs (when API server is running)
-- **Development Guide**: Check the CLAUDE.md file for development instructions
-- **Issues**: Create an issue on GitHub for bugs or feature requests
-- **CLI Help**: Run `uv run python cli.py --help` for CLI usage
-
-## Roadmap (Backend-Focused)
-
-- [ ] Multiple LLM provider support (Anthropic, Gemini, etc.)
-- [ ] Advanced agent configuration and templates
-- [ ] Bulk generation capabilities via CLI and API
-- [ ] Plugin system for custom agents and tools
-- [ ] Enhanced API rate limiting and caching
-- [ ] Webhook support for integration workflows
-- [ ] Advanced search and research capabilities
+For issues and questions, please open an issue on the GitHub repository.
