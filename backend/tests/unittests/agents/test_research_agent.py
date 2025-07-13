@@ -18,8 +18,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """Tests for ResearchAgent."""
 
-import pytest
 import json
+
+import pytest
+
 from agents.research_agent import ResearchAgent
 from core.exceptions import ErrorConstants
 from tools.search import SearchConfig
@@ -186,7 +188,9 @@ class TestResearchAgent:
         }
 
         mock_llm_service = mocker.Mock()
-        mock_llm_service.generate_response.return_value.content = ErrorConstants.LLM_NO_RESPONSE
+        mock_llm_service.generate_response.return_value.content = (
+            ErrorConstants.LLM_NO_RESPONSE
+        )
         mock_llm_service.generate_response.return_value.usage = None
 
         agent = ResearchAgent(

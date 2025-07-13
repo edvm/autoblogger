@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """Tests for WritingAgent."""
 
 import pytest
+
 from agents.writing_agent import WritingAgent
 
 

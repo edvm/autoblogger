@@ -18,17 +18,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """Tests for search functionality."""
 
-import pytest
 from unittest.mock import Mock, patch
+
+import pytest
+
 from tools.search import (
-    SearchConfig,
-    SearchDepth,
-    SearchTopic,
-    TimeRange,
     AnswerType,
     ContentType,
-    TavilySearch,
+    SearchConfig,
+    SearchDepth,
     SearchTool,
+    SearchTopic,
+    TavilySearch,
+    TimeRange,
 )
 
 

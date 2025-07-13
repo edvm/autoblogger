@@ -18,20 +18,21 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """Test fixtures and builders for the autoblogger backend."""
 
-import pytest
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 from unittest.mock import Mock, patch
+
+import pytest
 from fastapi.testclient import TestClient
 
-from core.state import WorkflowState, WokflowType
-from core.llm_services import LLMService, LLMServiceResponse, LLMUsage
-from tools.search import SearchConfig, SearchDepth, SearchTopic, TimeRange
-from agents.research_agent import ResearchAgent
-from agents.writing_agent import WritingAgent
 from agents.editor_agent import EditorAgent
 from agents.manager_agent import BloggerManagerAgent
-from api.database import User
+from agents.research_agent import ResearchAgent
+from agents.writing_agent import WritingAgent
 from api.auth import ClerkUser
+from api.database import User
+from core.llm_services import LLMService, LLMServiceResponse, LLMUsage
+from core.state import WokflowType, WorkflowState
+from tools.search import SearchConfig, SearchDepth, SearchTopic, TimeRange
 
 
 class WorkflowStateBuilder:
@@ -55,7 +56,7 @@ class WorkflowStateBuilder:
         self.status = status
         return self
 
-    def with_research_brief(self, brief: Dict[str, Any]) -> "WorkflowStateBuilder":
+    def with_research_brief(self, brief: dict[str, Any]) -> "WorkflowStateBuilder":
         self.research_brief = brief
         return self
 
@@ -91,7 +92,7 @@ class WorkflowStateBuilder:
 class MockLLMService:
     """Mock LLM service for testing."""
 
-    def __init__(self, responses: Optional[Dict[str, str]] = None):
+    def __init__(self, responses: dict[str, str] | None = None):
         self.responses = responses or {}
         self.default_response = "Mock LLM Response"
         self.call_count = 0
@@ -120,20 +121,20 @@ class MockLLMService:
 class MockSearchTool:
     """Mock search tool for testing."""
 
-    def __init__(self, results: Optional[Dict[str, Any]] = None):
+    def __init__(self, results: dict[str, Any] | None = None):
         self.results = results or self._default_results()
         self.search_count = 0
         self.last_query = None
         self.last_config = None
 
-    def search(self, query: str, search_config: SearchConfig) -> Dict[str, Any]:
+    def search(self, query: str, search_config: SearchConfig) -> dict[str, Any]:
         self.search_count += 1
         self.last_query = query
         self.last_config = search_config
         return self.results
 
     @staticmethod
-    def _default_results() -> Dict[str, Any]:
+    def _default_results() -> dict[str, Any]:
         return {
             "results": [
                 {
@@ -395,9 +396,9 @@ def mock_test_clerk_user():
 @pytest.fixture
 def authenticated_client(mock_test_user):
     """Fixture providing an authenticated test client."""
-    from api.main import app
     from api.auth import get_current_user
-    from api.database import get_db, User
+    from api.database import User, get_db
+    from api.main import app
 
     # Override the get_current_user dependency
     def get_current_user_override():
@@ -423,9 +424,9 @@ def authenticated_client_with_custom_user():
     created_clients = []
 
     def _create_client(user: Mock = None, clerk_user: ClerkUser = None):
-        from api.main import app
         from api.auth import get_current_user
         from api.database import get_db
+        from api.main import app
 
         test_user = user or create_mock_user()
 

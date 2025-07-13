@@ -16,19 +16,17 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+import re
+from collections.abc import Callable
+
 from fastapi import Request, Response
 from fastapi.responses import JSONResponse
 from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
-from slowapi.middleware import SlowAPIMiddleware
+from slowapi.util import get_remote_address
 from starlette.middleware.base import BaseHTTPMiddleware
-from typing import Callable
-import re
 
 from configs.config import RATE_LIMIT_REQUESTS, RATE_LIMIT_WINDOW
-from .exceptions import RateLimitExceeded as AutobloggerRateLimitExceeded
-
 
 # Rate limiter configuration
 limiter = Limiter(key_func=get_remote_address)

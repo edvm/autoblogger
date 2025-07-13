@@ -18,14 +18,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """User management endpoints."""
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
-from pydantic import BaseModel
-from typing import Optional
 from datetime import datetime
 
-from ..database import get_db, User
+from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
+
 from ..auth import get_current_user
+from ..database import User, get_db
 
 router = APIRouter()
 
@@ -37,9 +37,9 @@ class UserResponse(BaseModel):
     id: int
     clerk_user_id: str
     email: str
-    username: Optional[str]
-    first_name: Optional[str]
-    last_name: Optional[str]
+    username: str | None
+    first_name: str | None
+    last_name: str | None
     credits: int
     is_active: bool
     created_at: datetime
@@ -52,9 +52,9 @@ class UserResponse(BaseModel):
 class UserUpdate(BaseModel):
     """User update model."""
 
-    username: Optional[str] = None
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
+    username: str | None = None
+    first_name: str | None = None
+    last_name: str | None = None
 
 
 @router.get("/me", response_model=UserResponse)

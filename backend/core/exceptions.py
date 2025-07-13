@@ -16,14 +16,15 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+from typing import Any
+
 from fastapi import HTTPException, status
-from typing import Optional, Dict, Any
 
 
 class AutobloggerException(Exception):
     """Base exception for all Autoblogger-specific errors."""
 
-    def __init__(self, message: str, details: Optional[Dict[str, Any]] = None):
+    def __init__(self, message: str, details: dict[str, Any] | None = None):
         super().__init__(message)
         self.message = message
         self.details = details or {}
@@ -91,8 +92,8 @@ class AutobloggerHTTPException(HTTPException):
         self,
         status_code: int,
         detail: str,
-        headers: Optional[Dict[str, str]] = None,
-        error_code: Optional[str] = None,
+        headers: dict[str, str] | None = None,
+        error_code: str | None = None,
     ):
         super().__init__(status_code=status_code, detail=detail, headers=headers)
         self.error_code = error_code

@@ -18,8 +18,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """Tests for EditorAgent."""
 
-import pytest
 from unittest.mock import Mock
+
+import pytest
+
 from agents.editor_agent import EditorAgent
 
 

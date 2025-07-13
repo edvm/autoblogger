@@ -22,12 +22,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # `query_llm` for sending prompts to specified LLM models and retrieving their
 # responses.
 
-import openai
 from abc import ABC, abstractmethod
-from .state import WorkflowState
-from .exceptions import LLMServiceError, ErrorConstants
+
+import openai
+
 from configs.config import GEMINI_API_KEY
 from configs.logging_config import logger
+
+from .exceptions import ErrorConstants
+from .state import WorkflowState
 
 try:
     from google import genai
@@ -279,7 +282,7 @@ def create_llm_service(
         >>> # Override API key
         >>> service = create_llm_service(provider="openai", api_key="custom-key")
     """
-    from configs.config import LLM_PROVIDER, OPENAI_API_KEY, GEMINI_API_KEY
+    from configs.config import LLM_PROVIDER, OPENAI_API_KEY
 
     # Use provided provider or fall back to config
     selected_provider = (provider or LLM_PROVIDER).lower()

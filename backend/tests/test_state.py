@@ -18,9 +18,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """Tests for the core state management."""
 
-import pytest
 from datetime import datetime
-from core.state import WorkflowState, WokflowType
+
+import pytest
+
+from core.state import WokflowType, WorkflowState
 
 
 class TestWorkflowState:

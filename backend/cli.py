@@ -29,12 +29,11 @@ Example:
         $ uv run python cli.py --help
 """
 
-from configs.logging_config import logger
 import argparse
 
-from core.state import WorkflowState
 from apps.blogger import get_blogger_app
-
+from configs.logging_config import logger
+from core.state import WorkflowState
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Autoblogger CLI")

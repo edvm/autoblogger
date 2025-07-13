@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 import os
+
 from dotenv import load_dotenv
 
 # Load environment variables from a .env file
@@ -53,8 +54,8 @@ ENVIRONMENT = os.getenv("ENVIRONMENT", "development").lower()
 # CORS configuration - secure defaults for production
 if ENVIRONMENT == "production":
     ALLOWED_ORIGINS = [
-        origin.strip() 
-        for origin in os.getenv("ALLOWED_ORIGINS", "").split(",") 
+        origin.strip()
+        for origin in os.getenv("ALLOWED_ORIGINS", "").split(",")
         if origin.strip()
     ]
     if not ALLOWED_ORIGINS:
@@ -63,9 +64,9 @@ else:
     # Development defaults
     ALLOWED_ORIGINS = [
         "http://localhost:3000",
-        "http://localhost:3001", 
+        "http://localhost:3001",
         "http://127.0.0.1:3000",
-        "http://127.0.0.1:3001"
+        "http://127.0.0.1:3001",
     ]
 
 # Rate limiting configuration

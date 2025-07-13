@@ -18,22 +18,22 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """Main FastAPI application for AutoBlogger API."""
 
+import uvicorn
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-import uvicorn
-
-# Import routers
-from .routers import users, apps, credits
 
 # Import configuration and middleware
-from configs.config import ALLOWED_ORIGINS, ENVIRONMENT
-from core.middleware import (
-    SecurityHeadersMiddleware, 
-    InputSanitizationMiddleware,
-    setup_rate_limiting
-)
+from configs.config import ALLOWED_ORIGINS
 from core.exceptions import AutobloggerException, map_exception_to_http
+from core.middleware import (
+    InputSanitizationMiddleware,
+    SecurityHeadersMiddleware,
+    setup_rate_limiting,
+)
+
+# Import routers
+from .routers import apps, credits, users
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -56,16 +56,17 @@ app.add_middleware(
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=[
         "Accept",
-        "Accept-Language", 
+        "Accept-Language",
         "Content-Language",
         "Content-Type",
         "Authorization",
-        "X-Requested-With"
+        "X-Requested-With",
     ],
 )
 
 # Set up rate limiting
 setup_rate_limiting(app)
+
 
 # Global exception handler for custom exceptions
 @app.exception_handler(AutobloggerException)
@@ -77,9 +78,10 @@ async def autoblogger_exception_handler(request: Request, exc: AutobloggerExcept
         content={
             "error": http_exc.detail,
             "error_code": http_exc.error_code,
-            "details": exc.details
-        }
+            "details": exc.details,
+        },
     )
+
 
 # Include routers
 app.include_router(users.router, prefix="/api/v1/users", tags=["users"])

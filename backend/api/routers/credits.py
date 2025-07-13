@@ -18,14 +18,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """Credits management endpoints."""
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
-from pydantic import BaseModel
-from typing import List, Optional
 from datetime import datetime
 
-from ..database import get_db, User, CreditTransaction
+from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
+
 from ..auth import get_current_user
+from ..database import CreditTransaction, User, get_db
 
 router = APIRouter()
 
@@ -37,8 +37,8 @@ class CreditTransactionResponse(BaseModel):
     id: int
     amount: int
     transaction_type: str
-    description: Optional[str]
-    reference_id: Optional[str]
+    description: str | None
+    reference_id: str | None
     created_at: datetime
 
     class Config:
@@ -57,7 +57,7 @@ class CreditPurchase(BaseModel):
     """Credit purchase request model."""
 
     amount: int
-    payment_reference: Optional[str] = None
+    payment_reference: str | None = None
 
 
 @router.get("/balance", response_model=CreditBalance)
@@ -68,7 +68,7 @@ async def get_credit_balance(current_user: User = Depends(get_current_user)):
     )
 
 
-@router.get("/transactions", response_model=List[CreditTransactionResponse])
+@router.get("/transactions", response_model=list[CreditTransactionResponse])
 async def get_credit_transactions(
     limit: int = 50,
     offset: int = 0,
@@ -131,7 +131,7 @@ def consume_credits(
     user: User,
     amount: int,
     description: str,
-    reference_id: Optional[str] = None,
+    reference_id: str | None = None,
     db: Session = None,
 ) -> CreditTransaction:
     """

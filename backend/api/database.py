@@ -18,21 +18,23 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """Database configuration and models for AutoBlogger API."""
 
-from typing import Any, Generator
+import os
+from collections.abc import Generator
+from datetime import datetime
+from typing import Any
+
 from sqlalchemy import (
-    create_engine,
-    Column,
-    String,
-    Integer,
-    DateTime,
     Boolean,
-    Text,
+    Column,
+    DateTime,
     ForeignKey,
+    Integer,
+    String,
+    Text,
+    create_engine,
 )
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, Session, relationship
-from datetime import datetime
-import os
+from sqlalchemy.orm import Session, relationship, sessionmaker
 
 # Database URL - SQLite for development
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./autoblogger.db")

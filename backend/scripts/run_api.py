@@ -16,22 +16,20 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from abc import ABC, abstractmethod
+"""Script to run the AutoBlogger API server."""
 
-from core.state import WorkflowState
+import uvicorn
 
+from api.database import create_tables
 
-class AbstractAgent(ABC):
-    """Abstract base class for all agents."""
+if __name__ == "__main__":
+    # Create database tables
+    print("Creating database tables...")
+    create_tables()
+    print("Database tables created successfully!")
 
-    @abstractmethod
-    def execute(self: "AbstractAgent", state: WorkflowState) -> WorkflowState:
-        """Executes the agent's specific task.
-
-        Args:
-            state: The current state of the workflow.
-
-        Returns:
-            The updated state after the agent's task is completed.
-        """
-        pass
+    # Run the API server
+    print("Starting AutoBlogger API server...")
+    uvicorn.run(
+        "api.main:app", host="0.0.0.0", port=8000, reload=True, log_level="info"
+    )

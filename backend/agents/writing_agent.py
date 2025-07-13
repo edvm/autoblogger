@@ -16,14 +16,16 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from .base_agent import AbstractAgent
-from core.state import WorkflowState
-from core.llm_services import LLMService, query_llm
-from configs.config import FAST_LLM_MODEL
-from configs.logging_config import logger
-from typing import Any, Dict
 import json
 import re
+from typing import Any
+
+from configs.config import FAST_LLM_MODEL
+from configs.logging_config import logger
+from core.llm_services import LLMService, query_llm
+from core.state import WorkflowState
+
+from .base_agent import AbstractAgent
 
 
 class WritingAgent(AbstractAgent):
@@ -36,7 +38,7 @@ class WritingAgent(AbstractAgent):
         self.llm_service = llm_service
         self.llm_model = llm_model
 
-    def parse_topic_directives(self, topic: str) -> Dict[str, Any]:
+    def parse_topic_directives(self, topic: str) -> dict[str, Any]:
         """
         Parse directives from the topic to customize writing behavior.
         Directives can be embedded in the topic using formats like:
@@ -74,7 +76,7 @@ class WritingAgent(AbstractAgent):
 
         return directives
 
-    def build_enhanced_system_message(self, directives: Dict[str, str]) -> str:
+    def build_enhanced_system_message(self, directives: dict[str, str]) -> str:
         """Build a customized system message based on parsed directives."""
 
         # Base persona
@@ -126,7 +128,7 @@ class WritingAgent(AbstractAgent):
         return system_message
 
     def build_enhanced_prompt(
-        self, state: WorkflowState, directives: Dict[str, str]
+        self, state: WorkflowState, directives: dict[str, str]
     ) -> str:
         """Build a customized prompt based on directives and research."""
 
