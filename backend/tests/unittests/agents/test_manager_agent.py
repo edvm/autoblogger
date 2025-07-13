@@ -16,10 +16,10 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-"""Tests for BloggerManagerAgent."""
-
 from agents.manager_agent import BloggerManagerAgent
 from core.state import WorkflowState
+
+"""Tests for BloggerManagerAgent."""
 
 
 class TestBloggerManagerAgent:
@@ -229,7 +229,7 @@ class TestBloggerManagerAgent:
         self, blogger_manager_agent, basic_workflow_state
     ):
         """Test that workflow state progresses correctly through agents."""
-        result_state = blogger_manager_agent.execute(basic_workflow_state)
+        blogger_manager_agent.execute(basic_workflow_state)
 
         # Verify each agent received the state and updated it
         research_agent = blogger_manager_agent.research_agent

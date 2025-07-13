@@ -50,9 +50,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #         ValueError: If any of the critical steps (research, writing, or editing)
 #                     fail to produce their expected output (e.g., research_brief,
 #                     draft_content, final_content are not populated).
-from .base_agent import AbstractAgent
-from core.state import WorkflowState
+
 from configs.logging_config import logger
+from core.state import WorkflowState
+
+from .base_agent import AbstractAgent
 
 
 class BloggerManagerAgent(AbstractAgent):

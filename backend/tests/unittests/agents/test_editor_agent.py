@@ -16,11 +16,13 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-"""Tests for EditorAgent."""
+from unittest.mock import Mock
 
 import pytest
-from unittest.mock import Mock
+
 from agents.editor_agent import EditorAgent
+
+"""Tests for EditorAgent."""
 
 
 class TestEditorAgent:

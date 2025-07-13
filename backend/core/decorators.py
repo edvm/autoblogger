@@ -17,9 +17,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 from functools import wraps
-from typing import List, Optional
-from configs.logging_config import logger
+
 from configs import config
+from configs.logging_config import logger
 
 
 def require_env_vars(*env_vars: str):
@@ -45,7 +45,7 @@ def require_env_vars(*env_vars: str):
                     logger.error(f"{var} is not set in the environment variables.")
 
             if missing_vars:
-                raise EnvironmentError(
+                raise OSError(
                     f"The following environment variables must be set to run {func.__name__}: {', '.join(missing_vars)}"
                 )
 

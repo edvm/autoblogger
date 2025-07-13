@@ -16,13 +16,15 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-"""Tests for ResearchAgent."""
+import json
 
 import pytest
-import json
+
 from agents.research_agent import ResearchAgent
-from core.llm_services import ERROR_FLAG
+from core.exceptions import ErrorConstants
 from tools.search import SearchConfig
+
+"""Tests for ResearchAgent."""
 
 
 class TestResearchAgent:
@@ -186,7 +188,9 @@ class TestResearchAgent:
         }
 
         mock_llm_service = mocker.Mock()
-        mock_llm_service.generate_response.return_value.content = ERROR_FLAG
+        mock_llm_service.generate_response.return_value.content = (
+            ErrorConstants.LLM_NO_RESPONSE
+        )
         mock_llm_service.generate_response.return_value.usage = None
 
         agent = ResearchAgent(

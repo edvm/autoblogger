@@ -22,18 +22,20 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # `query_llm` for sending prompts to specified LLM models and retrieving their
 # responses.
 
-import openai
 from abc import ABC, abstractmethod
-from .state import WorkflowState
+
+import openai
+
 from configs.config import GEMINI_API_KEY
 from configs.logging_config import logger
+
+from .exceptions import ErrorConstants
+from .state import WorkflowState
 
 try:
     from google import genai
 except ImportError:
     genai = None
-
-ERROR_FLAG = "fucked up"
 
 
 class LLMServiceException(Exception):
@@ -168,7 +170,7 @@ class OpenAIService(LLMService):
             return LLMServiceResponse(content=content, usage=token_usage)
         except Exception as e:
             logger.error(f"An error occurred while querying the OpenAI API: {e}")
-            raise LLMServiceException(f"Error querying OpenAI API: {e}")
+            raise LLMServiceException(f"Error querying OpenAI API: {e}") from e
 
 
 class GeminiService(LLMService):
@@ -246,7 +248,7 @@ class GeminiService(LLMService):
             return LLMServiceResponse(content=content, usage=token_usage)
         except Exception as e:
             logger.error(f"An error occurred while querying the Gemini API: {e}")
-            raise LLMServiceException(f"Error querying Gemini API: {e}")
+            raise LLMServiceException(f"Error querying Gemini API: {e}") from e
 
 
 def create_llm_service(
@@ -280,7 +282,7 @@ def create_llm_service(
         >>> # Override API key
         >>> service = create_llm_service(provider="openai", api_key="custom-key")
     """
-    from configs.config import LLM_PROVIDER, OPENAI_API_KEY, GEMINI_API_KEY
+    from configs.config import LLM_PROVIDER, OPENAI_API_KEY
 
     # Use provided provider or fall back to config
     selected_provider = (provider or LLM_PROVIDER).lower()
@@ -358,7 +360,7 @@ def query_llm(
         if content is None or content == "":
             logger.warning(f"LLM returned None or empty content for model {model}.")
             state.log_entry(f"Warning: LLM returned no content for model {model}.")
-            return ERROR_FLAG
+            return ErrorConstants.LLM_NO_RESPONSE
         return content.strip()
 
     except Exception as e:

@@ -1,0 +1,40 @@
+# Backend-specific ignores
+
+# Test coverage reports
+htmlcov/
+coverage.xml
+pytest-report.xml
+.coverage
+.coverage.*
+
+# Test cache
+.pytest_cache/
+
+# Database files
+*.db
+*.sqlite3
+*.sqlite
+
+# Generated output files
+outputs/
+
+# Temporary files
+temp/
+tmp/
+
+# Log files
+*.log
+logs/
+
+# Cache directories
+__pycache__/
+.mypy_cache/
+.ruff_cache/
+
+# Environment files
+.env
+.env.*
+
+# Virtual environments
+.venv/
+venv/

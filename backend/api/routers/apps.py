@@ -16,22 +16,25 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-"""App consumption endpoints."""
-
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
-from fastapi.responses import Response
-from sqlalchemy.orm import Session
-from pydantic import BaseModel
-from typing import List, Optional, Dict, Any
-from datetime import datetime
 import json
+from datetime import datetime
+from typing import Any
 
-from ..database import get_db, User, AppUsage
-from ..auth import get_current_user
-from .credits import consume_credits
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, status
+from fastapi.responses import Response
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
+
 from apps.blogger import get_blogger_app
+from core.middleware import expensive_rate_limit, standard_rate_limit
 from core.state import WorkflowState
 from utils.filename import sanitize_filename_for_download
+
+from ..auth import get_current_user
+from ..database import AppUsage, User, get_db
+from .credits import consume_credits
+
+"""App consumption endpoints."""
 
 router = APIRouter()
 
@@ -43,7 +46,7 @@ class AppInfo(BaseModel):
     name: str
     description: str
     credits_required: int
-    parameters: Dict[str, Any]
+    parameters: dict[str, Any]
 
 
 class BloggerAppRequest(BaseModel):
@@ -55,8 +58,8 @@ class BloggerAppRequest(BaseModel):
     time_range: str = "month"
     days: int = 7
     max_results: int = 5
-    include_domains: Optional[List[str]] = None
-    exclude_domains: Optional[List[str]] = None
+    include_domains: list[str] | None = None
+    exclude_domains: list[str] | None = None
     include_answer: bool = False
     include_raw_content: bool = False
     include_images: bool = False
@@ -71,8 +74,8 @@ class AppUsageResponse(BaseModel):
     credits_consumed: int
     status: str
     started_at: datetime
-    completed_at: Optional[datetime]
-    error_message: Optional[str]
+    completed_at: datetime | None
+    error_message: str | None
 
     class Config:
         from_attributes = True
@@ -83,10 +86,10 @@ class BloggerAppResponse(BaseModel):
 
     usage_id: int
     status: str
-    final_content: Optional[str] = None
-    research_brief: Optional[Dict[str, Any]] = None
-    sources: Optional[List[str]] = None
-    error_message: Optional[str] = None
+    final_content: str | None = None
+    research_brief: dict[str, Any] | None = None
+    sources: list[str] | None = None
+    error_message: str | None = None
 
 
 class UserContentItem(BaseModel):
@@ -97,7 +100,7 @@ class UserContentItem(BaseModel):
     topic: str
     status: str
     created_at: datetime
-    completed_at: Optional[datetime]
+    completed_at: datetime | None
     has_content: bool
 
     class Config:
@@ -124,11 +127,13 @@ AVAILABLE_APPS = {
 }
 
 
-@router.get("/usage/history", response_model=List[AppUsageResponse])
+@router.get("/usage/history", response_model=list[AppUsageResponse])
+@standard_rate_limit()
 async def get_app_usage_history(
+    request: Request,
     limit: int = 50,
     offset: int = 0,
-    app_name: Optional[str] = None,
+    app_name: str | None = None,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -146,7 +151,9 @@ async def get_app_usage_history(
 
 
 @router.post("/blogger/generate", response_model=BloggerAppResponse)
+@expensive_rate_limit()
 async def generate_blog_post(
+    request_obj: Request,
     request: BloggerAppRequest,
     background_tasks: BackgroundTasks,
     current_user: User = Depends(get_current_user),
@@ -200,7 +207,9 @@ async def generate_blog_post(
 
 
 @router.get("/blogger/usage/{usage_id}", response_model=BloggerAppResponse)
+@standard_rate_limit()
 async def get_blogger_usage_status(
+    request: Request,
     usage_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -238,11 +247,11 @@ async def get_blogger_usage_status(
     return response
 
 
-@router.get("/content", response_model=List[UserContentItem])
+@router.get("/content", response_model=list[UserContentItem])
 async def get_user_content(
     limit: int = 50,
     offset: int = 0,
-    app_name: Optional[str] = None,
+    app_name: str | None = None,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -350,14 +359,14 @@ async def download_content(
             headers={"Content-Disposition": f"attachment; filename={filename}"},
         )
 
-    except json.JSONDecodeError:
+    except json.JSONDecodeError as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Invalid content format",
-        )
+        ) from e
 
 
-@router.get("/", response_model=List[AppInfo])
+@router.get("/", response_model=list[AppInfo])
 async def list_available_apps():
     """List all available apps and their requirements."""
     return list(AVAILABLE_APPS.values())

@@ -1,21 +1,26 @@
 #!/usr/bin/env python3
 """
-    Autoblogger - Generate content on demand using online data in real time.
-    Copyright (C) 2025  Emiliano Dalla Verde Marcozzi <edvm.inbox@gmail.com>
+Autoblogger - Generate content on demand using online data in real time.
+Copyright (C) 2025  Emiliano Dalla Verde Marcozzi <edvm.inbox@gmail.com>
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Affero General Public License as published
-    by the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published
+by the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Affero General Public License for more details.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
 
-    You should have received a copy of the GNU Affero General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
+
+from agents.writing_agent import WritingAgent
+from configs.config import OPENAI_API_KEY
+from core.llm_services import create_llm_service
+from core.state import WorkflowState
 
 """
 Test script to demonstrate the enhanced Writing Agent with directive parsing.
@@ -27,18 +32,16 @@ Usage:
     python test_writing_agent.py
 """
 
-import os
-from agents.writing_agent import WritingAgent
-from core.llm_services import OpenAIService
-from core.state import WorkflowState
-from configs.config import OPENAI_API_KEY
-
 
 def test_directive_parsing():
     """Test the directive parsing functionality."""
 
     # Create a Writing Agent instance
-    llm_service = OpenAIService(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
+    try:
+        llm_service = create_llm_service()
+    except Exception as e:
+        print(f"Failed to create LLM service: {e}")
+        llm_service = None
     writing_agent = WritingAgent(llm_service)
 
     # Test cases for directive parsing
@@ -76,7 +79,7 @@ def test_directive_parsing():
 
         # Show how the system message would be customized
         system_message = writing_agent.build_enhanced_system_message(directives)
-        print(f"\nCustomized System Message:")
+        print("\nCustomized System Message:")
         print(f"  {system_message[:150]}...")
 
         print("\n" + "=" * 80)
@@ -111,7 +114,7 @@ def test_full_writing_workflow():
     )
 
     # Create and execute Writing Agent
-    llm_service = OpenAIService(api_key=OPENAI_API_KEY)
+    llm_service = create_llm_service()
     writing_agent = WritingAgent(llm_service)
 
     print(f"Original Topic: {topic_with_directives}")

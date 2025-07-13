@@ -17,14 +17,14 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+import subprocess
+import sys
+from pathlib import Path
+
 """
 Test runner for the autoblogger backend.
 Runs the core functionality tests that are working properly.
 """
-
-import subprocess
-import sys
-from pathlib import Path
 
 
 def run_core_tests():
@@ -44,7 +44,7 @@ def run_core_tests():
     cmd = ["uv", "run", "python", "-m", "pytest"] + test_files + ["-v"]
 
     try:
-        result = subprocess.run(cmd, cwd=Path(__file__).parent, check=True)
+        subprocess.run(cmd, cwd=Path(__file__).parent.parent, check=True)
         print("\n✅ All core tests passed!")
         return True
     except subprocess.CalledProcessError as e:
@@ -60,8 +60,7 @@ def run_all_tests():
     cmd = ["uv", "run", "python", "-m", "pytest", "tests/", "-v", "--tb=short"]
 
     try:
-        result = subprocess.run(cmd, cwd=Path(__file__).parent, check=False)
-        passed_count = "?"  # Would need to parse output to get exact count
+        result = subprocess.run(cmd, cwd=Path(__file__).parent.parent, check=False)
         print(f"\n📊 Test run completed (exit code: {result.returncode})")
         return result.returncode == 0
     except Exception as e:

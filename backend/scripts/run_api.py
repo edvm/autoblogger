@@ -16,10 +16,11 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-"""Script to run the AutoBlogger API server."""
-
 import uvicorn
+
 from api.database import create_tables
+
+"""Script to run the AutoBlogger API server."""
 
 if __name__ == "__main__":
     # Create database tables

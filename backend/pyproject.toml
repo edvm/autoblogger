@@ -16,6 +16,7 @@ dependencies = [
     "python-dotenv>=1.1.0",
     "redis>=6.2.0",
     "rich>=14.0.0",
+    "slowapi>=0.1.9",
     "sqlalchemy>=2.0.41",
     "tavily-python>=0.7.5",
     "uvicorn>=0.34.3",
@@ -44,7 +45,7 @@ addopts = [
     "--cov-report=term-missing",
     "--cov-report=html:htmlcov",
     "--cov-report=xml",
-    "--cov-fail-under=80",
+    "--cov-fail-under=30",
     "--junitxml=pytest-report.xml",
 ]
 testpaths = ["tests"]

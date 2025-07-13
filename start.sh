@@ -34,23 +34,12 @@ export $(grep -v '^#' backend/.env | xargs)
 # Backend environment variables
 echo -e "${GREEN}✅ Backend environment variables loaded${NC}"
 
-# Frontend environment variables
-echo -e "${BLUE}📦 Setting frontend environment variables...${NC}"
-export NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="${CLERK_PUBLISHABLE_KEY}"
-export CLERK_SECRET_KEY="${CLERK_SECRET_KEY}"
-export NEXT_PUBLIC_API_BASE_URL="http://dev.orb.local:8000"
-echo -e "${GREEN}✅ Frontend environment variables set${NC}"
-
 # Function to cleanup background processes
 cleanup() {
     echo -e "\n${YELLOW}🛑 Shutting down services...${NC}"
     if [ ! -z "$BACKEND_PID" ]; then
         kill $BACKEND_PID 2>/dev/null || true
         echo -e "${GREEN}✅ Backend stopped${NC}"
-    fi
-    if [ ! -z "$FRONTEND_PID" ]; then
-        kill $FRONTEND_PID 2>/dev/null || true
-        echo -e "${GREEN}✅ Frontend stopped${NC}"
     fi
     exit 0
 }
@@ -61,7 +50,7 @@ trap cleanup SIGINT SIGTERM
 # Start backend
 echo -e "${BLUE}🔧 Starting backend API server...${NC}"
 cd backend
-uv run python run_api.py &
+uv run python scripts/run_api.py &
 BACKEND_PID=$!
 cd ..
 echo -e "${GREEN}✅ Backend started (PID: $BACKEND_PID)${NC}"
@@ -69,21 +58,12 @@ echo -e "${GREEN}✅ Backend started (PID: $BACKEND_PID)${NC}"
 # Wait a moment for backend to start
 sleep 3
 
-# Start frontend
-echo -e "${BLUE}🎨 Starting frontend development server...${NC}"
-cd frontend
-npm run dev &
-FRONTEND_PID=$!
-cd ..
-echo -e "${GREEN}✅ Frontend started (PID: $FRONTEND_PID)${NC}"
-
 echo ""
-echo -e "${GREEN}🎉 AutoBlogger is now running!${NC}"
+echo -e "${GREEN}🎉 AutoBlogger Backend is now running!${NC}"
 echo -e "${BLUE}📍 Backend API: http://localhost:8000${NC}"
-echo -e "${BLUE}📍 Frontend: http://localhost:3000${NC}"
 echo -e "${BLUE}📍 API Documentation: http://localhost:8000/docs${NC}"
 echo ""
-echo -e "${YELLOW}Press Ctrl+C to stop all services${NC}"
+echo -e "${YELLOW}Press Ctrl+C to stop the backend service${NC}"
 
 # Wait for background processes
 wait

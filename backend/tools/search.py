@@ -17,10 +17,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 # This module provides a wrapper for the Tavily search API (let LLMs browse the web).
+from collections.abc import Sequence
+from dataclasses import asdict, dataclass
 from enum import StrEnum
-from typing import Protocol, Literal, Sequence, Union, runtime_checkable
-from dataclasses import dataclass, asdict
+from typing import Protocol, runtime_checkable
+
 from tavily import TavilyClient
+
 from configs.config import TAVILY_API_KEY
 from configs.logging_config import logger
 

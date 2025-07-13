@@ -16,11 +16,11 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from .research_agent import ResearchAgent
-from .writing_agent import WritingAgent
+from .base_agent import AbstractAgent
 from .editor_agent import EditorAgent
 from .manager_agent import BloggerManagerAgent
-from .base_agent import AbstractAgent
+from .research_agent import ResearchAgent
+from .writing_agent import WritingAgent
 
 __all__ = [
     "ResearchAgent",

@@ -16,19 +16,21 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-"""Tests for LLM services."""
-
 import pytest
+
+from core.exceptions import ErrorConstants
 from core.llm_services import (
+    GeminiService,
     LLMService,
+    LLMServiceException,
     LLMServiceResponse,
     LLMUsage,
-    LLMServiceException,
     OpenAIService,
-    GeminiService,
     query_llm,
 )
 from core.state import WorkflowState
+
+"""Tests for LLM services."""
 
 
 class TestLLMUsage:
@@ -94,7 +96,7 @@ class TestOpenAIService:
         """Test successful response generation."""
         # Mock the OpenAI client and response
         mock_client = mocker.Mock()
-        mock_openai_class = mocker.patch("openai.OpenAI", return_value=mock_client)
+        mocker.patch("openai.OpenAI", return_value=mock_client)
 
         mock_response = mocker.Mock()
         mock_response.choices = [mocker.Mock()]
@@ -239,7 +241,7 @@ class TestQueryLLM:
             model="gpt-3.5-turbo",
         )
 
-        assert result == "fucked up"  # ERROR_FLAG value
+        assert result == ErrorConstants.LLM_NO_RESPONSE
 
         # Verify warning was logged
         assert len(state.run_log) == 2
@@ -261,7 +263,7 @@ class TestQueryLLM:
             model="gpt-3.5-turbo",
         )
 
-        assert result == "fucked up"  # ERROR_FLAG value
+        assert result == ErrorConstants.LLM_NO_RESPONSE
 
     def test_query_llm_no_usage_info(self, mocker):
         """Test LLM query without usage information."""

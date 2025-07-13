@@ -1,4 +1,4 @@
-.PHONY: help format backend frontend all clean install-backend install-frontend install
+.PHONY: help format backend frontend all clean install-backend install-frontend install test lint typecheck
 
 # Default target - show help
 help:
@@ -8,6 +8,9 @@ help:
 	@echo "Available targets:"
 	@echo "  help           - Show this help message"
 	@echo "  format         - Format all backend Python files using ruff"
+	@echo "  lint           - Run linting on backend code"
+	@echo "  typecheck      - Run type checking on backend code"
+	@echo "  test           - Run backend tests"
 	@echo "  backend        - Start only the backend API server"
 	@echo "  frontend       - Start only the frontend development server"
 	@echo "  all           - Start both backend and frontend"
@@ -39,7 +42,7 @@ backend:
 		echo "Please copy backend/env.example to backend/.env and configure your API keys"; \
 		exit 1; \
 	fi
-	cd backend && uv run python run_api.py
+	cd backend && uv run python scripts/run_api.py
 
 # Start only the frontend development server
 frontend:
@@ -84,6 +87,25 @@ clean:
 	rm -rf backend/**/__pycache__
 	rm -rf frontend/node_modules
 	rm -rf frontend/.next
-	rm -rf backend/outputs/*.md
-	rm -rf backend/outputs/*.json
+	rm -rf backend/htmlcov
+	rm -rf backend/coverage.xml
+	rm -rf backend/pytest-report.xml
 	@echo "✓ Clean complete"
+
+# Run backend tests
+test:
+	@echo "Running backend tests..."
+	cd backend && uv run python scripts/run_tests.py
+	@echo "✓ Backend tests complete"
+
+# Run linting on backend code
+lint:
+	@echo "Running backend linting..."
+	cd backend && uv run ruff check .
+	@echo "✓ Backend linting complete"
+
+# Run type checking on backend code
+typecheck:
+	@echo "Running backend type checking..."
+	cd backend && uv run mypy .
+	@echo "✓ Backend type checking complete"

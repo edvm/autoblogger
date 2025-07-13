@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 from abc import ABC, abstractmethod
+
 from core.state import WorkflowState
 
 

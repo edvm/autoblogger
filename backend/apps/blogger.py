@@ -17,23 +17,23 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 import os
-from typing import Optional
-from decorators import require_env_vars
+
+from agents import EditorAgent, ResearchAgent, WritingAgent
+from agents.base_agent import AbstractAgent
+from configs import config
+from configs.logging_config import logger
+from core.decorators import require_env_vars
 from core.llm_services import LLMService, create_llm_service
 from core.state import WorkflowState
-from configs.logging_config import logger
-from agents import ResearchAgent, WritingAgent, EditorAgent
-from agents.base_agent import AbstractAgent
 from tools.search import (
     AnswerType,
     ContentType,
-    SearchTool,
     SearchConfig,
     SearchDepth,
+    SearchTool,
     SearchTopic,
     TimeRange,
 )
-from configs import config
 from utils.filename import sanitize_filename
 
 
@@ -116,10 +116,10 @@ class BloggerApp:
             output_dir: Directory where generated blog posts will be saved.
         """
         self.output_dir = output_dir
-        self._llm_service: Optional[LLMService] = None
-        self._search_tool: Optional[SearchTool] = None
-        self._search_config: Optional[SearchConfig] = None
-        self._manager: Optional[ConfigurableBloggerManagerAgent] = None
+        self._llm_service: LLMService | None = None
+        self._search_tool: SearchTool | None = None
+        self._search_config: SearchConfig | None = None
+        self._manager: ConfigurableBloggerManagerAgent | None = None
 
     def with_llm_service(self, llm_service: LLMService) -> "BloggerApp":
         """Set LLM service.
@@ -316,15 +316,15 @@ def get_blogger_app(
     include_domains = include_domains or []
     exclude_domains = exclude_domains or []
 
-    from tools.search import TavilySearch
     from core.llm_services import LLMServiceException
+    from tools.search import TavilySearch
 
     try:
         llm_service = create_llm_service()
         logger.info(f"Using LLM provider: {config.LLM_PROVIDER}")
     except LLMServiceException as e:
         logger.error(f"Failed to create LLM service: {e}")
-        raise EnvironmentError(f"LLM service configuration error: {e}")
+        raise OSError(f"LLM service configuration error: {e}") from e
 
     # Create SearchConfig with provided parameters
     search_tool = TavilySearch()

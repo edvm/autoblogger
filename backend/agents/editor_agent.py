@@ -16,12 +16,12 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from .base_agent import AbstractAgent
-from core.state import WorkflowState
-from core.llm_services import LLMService, query_llm
 from configs.config import FAST_LLM_MODEL
 from configs.logging_config import logger
-import json
+from core.llm_services import LLMService
+from core.state import WorkflowState
+
+from .base_agent import AbstractAgent
 
 
 class EditorAgent(AbstractAgent):

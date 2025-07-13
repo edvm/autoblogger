@@ -29,10 +29,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 # These state objects are designed to be passed between different agents or steps in a workflow,
 # allowing each component to read from and write to a centralized state.
-from enum import StrEnum
-from typing import Optional, List, Dict, Any
-from pydantic import BaseModel, Field
 import datetime
+from enum import StrEnum
+from typing import Any
+
+from pydantic import BaseModel, Field
 
 
 class WokflowType(StrEnum):
@@ -52,20 +53,20 @@ class WorkflowState(BaseModel):
     workflow_type: WokflowType = WokflowType.BLOGGING
 
     status: str = "PENDING"
-    run_log: List[str] = Field(default_factory=list)
+    run_log: list[str] = Field(default_factory=list)
     timestamp: str = Field(default_factory=lambda: datetime.datetime.now().isoformat())
 
     initial_topic: str
 
     # used by Research Agent
-    research_brief: Optional[Dict[str, Any]] = None
-    sources: List[str] = Field(default_factory=list)
+    research_brief: dict[str, Any] | None = None
+    sources: list[str] = Field(default_factory=list)
 
     # used by Writing Agent
-    draft_content: Optional[str] = None
+    draft_content: str | None = None
 
     # used by Editor Agent
-    final_content: Optional[str] = None
+    final_content: str | None = None
 
     def log_entry(self, entry: str) -> None:
         """Adds a new entry to the run log with a timestamp."""

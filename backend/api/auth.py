@@ -16,16 +16,17 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-"""Authentication utilities for Clerk integration."""
-
-from fastapi import HTTPException, status, Depends, Request
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from clerk_backend_api import AuthenticateRequestOptions, Clerk
+from fastapi import Depends, HTTPException, Request, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
-from typing import Optional
-from configs.logging_config import logger
-from .database import get_db, User
+
 from configs.config import CLERK_SECRET_KEY
-from clerk_backend_api import Clerk, AuthenticateRequestOptions
+from configs.logging_config import logger
+
+from .database import User, get_db
+
+"""Authentication utilities for Clerk integration."""
 
 # Security scheme
 security = HTTPBearer()
@@ -38,8 +39,8 @@ class ClerkUser:
         self,
         user_id: str,
         email: str,
-        first_name: Optional[str] = None,
-        last_name: Optional[str] = None,
+        first_name: str | None = None,
+        last_name: str | None = None,
     ) -> None:
         self.user_id = user_id
         self.email = email
@@ -97,7 +98,7 @@ async def get_clerk_user(request: Request) -> ClerkUser:
         logger.error(f"Failed to authenticate request: {e}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication failed"
-        )
+        ) from e
 
     if not request_state.is_signed_in:
         logger.error("User is not signed in")
@@ -127,7 +128,7 @@ async def get_clerk_user(request: Request) -> ClerkUser:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Failed to get user information",
-        )
+        ) from e
 
     if not user_response:
         logger.error(f"User not found for user_id: {user_id}")
@@ -202,11 +203,11 @@ async def get_current_user(
 # TODO: Remove this dependency
 async def get_current_user_optional(
     request: Request,
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(
+    credentials: HTTPAuthorizationCredentials | None = Depends(
         HTTPBearer(auto_error=False)
     ),
     db: Session = Depends(get_db),
-) -> Optional[User]:
+) -> User | None:
     """Get current user if authenticated, otherwise return None."""
     if not credentials:
         return None
