@@ -16,6 +16,12 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+import argparse
+
+from apps.blogger import get_blogger_app
+from configs.logging_config import logger
+from core.state import WorkflowState
+
 """Command-line interface for the Autoblogger application.
 
 This module provides a CLI to generate blog posts based on a user-provided topic.
@@ -28,12 +34,6 @@ Example:
     To see help:
         $ uv run python cli.py --help
 """
-
-import argparse
-
-from apps.blogger import get_blogger_app
-from configs.logging_config import logger
-from core.state import WorkflowState
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Autoblogger CLI")

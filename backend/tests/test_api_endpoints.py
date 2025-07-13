@@ -16,8 +16,6 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-"""Tests for API endpoints."""
-
 from unittest.mock import Mock, patch
 
 import pytest
@@ -27,6 +25,8 @@ from api.database import User
 from api.main import app
 from core.state import WorkflowState
 from tests.conftest import create_mock_user
+
+"""Tests for API endpoints."""
 
 # Create test client
 client = TestClient(app)

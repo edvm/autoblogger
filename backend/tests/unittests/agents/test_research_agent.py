@@ -16,8 +16,6 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-"""Tests for ResearchAgent."""
-
 import json
 
 import pytest
@@ -25,6 +23,8 @@ import pytest
 from agents.research_agent import ResearchAgent
 from core.exceptions import ErrorConstants
 from tools.search import SearchConfig
+
+"""Tests for ResearchAgent."""
 
 
 class TestResearchAgent:

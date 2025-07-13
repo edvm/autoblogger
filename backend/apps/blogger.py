@@ -324,7 +324,7 @@ def get_blogger_app(
         logger.info(f"Using LLM provider: {config.LLM_PROVIDER}")
     except LLMServiceException as e:
         logger.error(f"Failed to create LLM service: {e}")
-        raise OSError(f"LLM service configuration error: {e}")
+        raise OSError(f"LLM service configuration error: {e}") from e
 
     # Create SearchConfig with provided parameters
     search_tool = TavilySearch()

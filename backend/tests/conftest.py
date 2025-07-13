@@ -16,10 +16,8 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-"""Test fixtures and builders for the autoblogger backend."""
-
-from typing import Any, Dict, Optional
-from unittest.mock import Mock, patch
+from typing import Any
+from unittest.mock import Mock
 
 import pytest
 from fastapi.testclient import TestClient
@@ -33,6 +31,8 @@ from api.database import User
 from core.llm_services import LLMService, LLMServiceResponse, LLMUsage
 from core.state import WokflowType, WorkflowState
 from tools.search import SearchConfig, SearchDepth, SearchTopic, TimeRange
+
+"""Test fixtures and builders for the autoblogger backend."""
 
 
 class WorkflowStateBuilder:

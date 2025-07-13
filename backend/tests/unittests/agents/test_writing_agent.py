@@ -16,11 +16,11 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-"""Tests for WritingAgent."""
-
 import pytest
 
 from agents.writing_agent import WritingAgent
+
+"""Tests for WritingAgent."""
 
 
 class TestWritingAgent:

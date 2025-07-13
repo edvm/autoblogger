@@ -17,6 +17,11 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+from agents.writing_agent import WritingAgent
+from configs.config import OPENAI_API_KEY
+from core.llm_services import create_llm_service
+from core.state import WorkflowState
+
 """
 Test script to demonstrate the enhanced Writing Agent with directive parsing.
 
@@ -26,11 +31,6 @@ directives in their topic strings.
 Usage:
     python test_writing_agent.py
 """
-
-from agents.writing_agent import WritingAgent
-from configs.config import OPENAI_API_KEY
-from core.llm_services import create_llm_service
-from core.state import WorkflowState
 
 
 def test_directive_parsing():

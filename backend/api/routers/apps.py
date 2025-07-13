@@ -16,8 +16,6 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-"""App consumption endpoints."""
-
 import json
 from datetime import datetime
 from typing import Any
@@ -35,6 +33,8 @@ from utils.filename import sanitize_filename_for_download
 from ..auth import get_current_user
 from ..database import AppUsage, User, get_db
 from .credits import consume_credits
+
+"""App consumption endpoints."""
 
 router = APIRouter()
 
@@ -359,11 +359,11 @@ async def download_content(
             headers={"Content-Disposition": f"attachment; filename={filename}"},
         )
 
-    except json.JSONDecodeError:
+    except json.JSONDecodeError as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Invalid content format",
-        )
+        ) from e
 
 
 @router.get("/", response_model=list[AppInfo])

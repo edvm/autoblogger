@@ -16,8 +16,6 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-"""User management endpoints."""
-
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -26,6 +24,8 @@ from sqlalchemy.orm import Session
 
 from ..auth import get_current_user
 from ..database import User, get_db
+
+"""User management endpoints."""
 
 router = APIRouter()
 
