@@ -21,9 +21,6 @@ import {
   ArrowRight,
   ArrowLeft,
   Sparkles,
-  DollarSign,
-  Heart,
-  Users,
   Zap,
   CheckCircle
 } from "lucide-react"
@@ -147,7 +144,7 @@ const contentTypes: ContentType[] = [
 ]
 
 interface ContentWizardProps {
-  onComplete: (data: any) => void
+  onComplete: (data: unknown) => void
   onCancel: () => void
   initialTopic?: string
 }
@@ -417,7 +414,7 @@ export function ContentWizard({ onComplete, onCancel, initialTopic = "" }: Conte
               <div className="space-y-4">
                 <div>
                   <Label htmlFor="topic" className="text-lg font-semibold">
-                    What's your topic? <span className="text-red-500">*</span>
+                    What&apos;s your topic? <span className="text-red-500">*</span>
                   </Label>
                   <Input
                     id="topic"
@@ -430,7 +427,7 @@ export function ContentWizard({ onComplete, onCancel, initialTopic = "" }: Conte
 
                 <div>
                   <Label htmlFor="audience" className="text-lg font-semibold">
-                    Who's your target audience?
+                    Who&apos;s your target audience?
                   </Label>
                   <Input
                     id="audience"
@@ -467,7 +464,7 @@ export function ContentWizard({ onComplete, onCancel, initialTopic = "" }: Conte
                   Ready to Create Amazing Content!
                 </h3>
                 <p className="text-gray-600 dark:text-gray-300">
-                  Review your selections and we'll generate your content in minutes.
+                  Review your selections and we&apos;ll generate your content in minutes.
                 </p>
               </div>
 

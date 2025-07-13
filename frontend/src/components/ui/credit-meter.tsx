@@ -132,7 +132,7 @@ const CreditMeter = React.forwardRef<HTMLDivElement, CreditMeterProps>(
           {showWarning && isLow && (
             <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20">
               <p className="text-sm text-destructive text-center">
-                You're running low on credits. Consider purchasing more to continue creating content.
+                You&apos;re running low on credits. Consider purchasing more to continue creating content.
               </p>
             </div>
           )}

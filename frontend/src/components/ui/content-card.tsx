@@ -32,7 +32,6 @@ export function ContentCard({
   item, 
   onDownload, 
   onPreview,
-  onDelete,
   isDownloading,
   isSelected = false,
   onSelect

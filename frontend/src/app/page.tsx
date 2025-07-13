@@ -3,8 +3,7 @@ import { SignedIn, SignedOut } from "@clerk/nextjs"
 import { Navigation } from "@/components/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { AIAssistantAvatar } from "@/components/ui/ai-assistant-avatar"
-import { Search, Edit3, CheckCircle, Heart, Users, Sparkles, Instagram, Twitter, Youtube, TrendingUp, DollarSign, Target, Zap, Play, Star, ArrowRight } from "lucide-react"
+import { Edit3, Sparkles, Instagram, Twitter, Youtube, TrendingUp, DollarSign, Target, Zap, Play, Star, ArrowRight } from "lucide-react"
 
 export default function Home() {
   return (
@@ -145,7 +144,7 @@ export default function Home() {
                     Generate viral captions, story content, and product posts that convert followers into customers. Perfect for influencers and brands.
                   </CardDescription>
                   <div className="mt-6 p-4 bg-white/90 dark:bg-card/90 rounded-xl border border-primary/10">
-                    <p className="text-sm font-semibold" style={{ color: 'hsl(var(--autoblogger-pink))' }}>"Increased my sales by 400% in 3 months"</p>
+                    <p className="text-sm font-semibold" style={{ color: 'hsl(var(--autoblogger-pink))' }}>&ldquo;Increased my sales by 400% in 3 months&rdquo;</p>
                     <p className="text-xs text-muted-foreground mt-1">- Sarah K, Fashion Influencer</p>
                   </div>
                 </CardHeader>
@@ -161,7 +160,7 @@ export default function Home() {
                     Create compelling video scripts, descriptions, and thumbnails copy that boost views and subscriber growth.
                   </CardDescription>
                   <div className="mt-6 p-4 bg-white/90 dark:bg-card/90 rounded-xl border border-primary/10">
-                    <p className="text-sm font-semibold" style={{ color: 'hsl(var(--autoblogger-blue))' }}>"From 10K to 500K subscribers in 8 months"</p>
+                    <p className="text-sm font-semibold" style={{ color: 'hsl(var(--autoblogger-blue))' }}>&ldquo;From 10K to 500K subscribers in 8 months&rdquo;</p>
                     <p className="text-xs text-muted-foreground mt-1">- Mike R, Tech YouTuber</p>
                   </div>
                 </CardHeader>
@@ -177,7 +176,7 @@ export default function Home() {
                     Product descriptions, email campaigns, and sales copy that convert browsers into buyers across all platforms.
                   </CardDescription>
                   <div className="mt-6 p-4 bg-white/90 dark:bg-card/90 rounded-xl border border-primary/10">
-                    <p className="text-sm font-semibold text-primary">"$100K in sales from one product launch"</p>
+                    <p className="text-sm font-semibold text-primary">&ldquo;$100K in sales from one product launch&rdquo;</p>
                     <p className="text-xs text-muted-foreground mt-1">- Lisa M, E-commerce Brand</p>
                   </div>
                 </CardHeader>
@@ -205,7 +204,7 @@ export default function Home() {
                 From Idea to Viral in Minutes
               </h2>
               <p className="max-w-[800px] mx-auto text-xl text-muted-foreground leading-relaxed">
-                Our AI workflow creates platform-optimized content that's designed to engage, convert, and scale your creator business.
+                Our AI workflow creates platform-optimized content that&apos;s designed to engage, convert, and scale your creator business.
               </p>
             </div>
             
@@ -242,7 +241,7 @@ export default function Home() {
                 </div>
                 <h3 className="text-2xl font-bold mb-4 text-foreground">AI Creates Magic</h3>
                 <p className="text-lg text-muted-foreground leading-relaxed">
-                  Watch as our AI researches trends, writes engaging content, and optimizes for each platform's algorithm - all in real-time.
+                  Watch as our AI researches trends, writes engaging content, and optimizes for each platform&apos;s algorithm - all in real-time.
                 </p>
               </div>
 

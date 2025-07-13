@@ -32,7 +32,7 @@ export interface ContentPreview {
   isFavorite?: boolean
 }
 
-export interface ContentPreviewCardProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface ContentPreviewCardProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'content'> {
   content: ContentPreview
   onView?: (id: string) => void
   onEdit?: (id: string) => void

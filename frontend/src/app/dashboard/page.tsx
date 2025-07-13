@@ -19,19 +19,10 @@ import { Label } from "@/components/ui/label"
 import { createApiClient, type User, type CreditBalance, type BloggerResponse, type BloggerRequest, type UserContentItem, type CreditTransaction } from "@/lib/api"
 import { 
   Sparkles, 
-  CreditCard, 
   Loader2, 
-  RefreshCw, 
-  Wand2, 
   Settings, 
-  Instagram,
-  Twitter,
   FileText,
-  Video,
-  Target,
-  Zap,
-  Crown,
-  ArrowRight
+  Zap
 } from "lucide-react"
 
 export const dynamic = 'force-dynamic'
@@ -43,7 +34,7 @@ export default function Dashboard() {
   
   const [user, setUser] = useState<User | null>(null)
   const [credits, setCredits] = useState<CreditBalance | null>(null)
-  const [transactions, setTransactions] = useState<CreditTransaction[]>([])
+  const [, setTransactions] = useState<CreditTransaction[]>([])
   const [recentArticles, setRecentArticles] = useState<UserContentItem[]>([])
   const [isGenerating, setIsGenerating] = useState(false)
   const [currentGeneration, setCurrentGeneration] = useState<BloggerResponse | null>(null)
@@ -58,52 +49,52 @@ export default function Dashboard() {
   const [blogCreationMode, setBlogCreationMode] = useState<'none' | 'simple' | 'expert'>('none')
   const [simpleTopic, setSimpleTopic] = useState('')
   
-  // Quick action templates
-  const quickActions = [
-    {
-      id: 'blog_article',
-      title: 'Blog Article',
-      description: 'SEO-optimized long-form content',
-      icon: FileText,
-      credits: 10,
-      time: '5 min',
-      gradient: 'from-violet-500 to-purple-500',
-      available: true
-    },
-    {
-      id: 'instagram_post',
-      title: 'Instagram Post',
-      description: 'Viral captions + hashtags',
-      icon: Instagram,
-      credits: 5,
-      time: '2 min',
-      gradient: 'from-pink-500 to-rose-500',
-      available: false,
-      comingSoon: true
-    },
-    {
-      id: 'twitter_thread',
-      title: 'Twitter Thread',
-      description: 'Engaging thread content',
-      icon: Twitter,
-      credits: 5,
-      time: '2 min',
-      gradient: 'from-blue-500 to-cyan-500',
-      available: false,
-      comingSoon: true
-    },
-    {
-      id: 'video_script',
-      title: 'Video Script',
-      description: 'YouTube/TikTok scripts',
-      icon: Video,
-      credits: 8,
-      time: '3 min',
-      gradient: 'from-red-500 to-pink-500',
-      available: false,
-      comingSoon: true
-    }
-  ]
+  // Quick action templates (kept for future use)
+  // const quickActions = [
+  //   {
+  //     id: 'blog_article',
+  //     title: 'Blog Article',
+  //     description: 'SEO-optimized long-form content',
+  //     icon: FileText,
+  //     credits: 10,
+  //     time: '5 min',
+  //     gradient: 'from-violet-500 to-purple-500',
+  //     available: true
+  //   },
+  //   {
+  //     id: 'instagram_post',
+  //     title: 'Instagram Post',
+  //     description: 'Viral captions + hashtags',
+  //     icon: Instagram,
+  //     credits: 5,
+  //     time: '2 min',
+  //     gradient: 'from-pink-500 to-rose-500',
+  //     available: false,
+  //     comingSoon: true
+  //   },
+  //   {
+  //     id: 'twitter_thread',
+  //     title: 'Twitter Thread',
+  //     description: 'Engaging thread content',
+  //     icon: Twitter,
+  //     credits: 5,
+  //     time: '2 min',
+  //     gradient: 'from-blue-500 to-cyan-500',
+  //     available: false,
+  //     comingSoon: true
+  //   },
+  //   {
+  //     id: 'video_script',
+  //     title: 'Video Script',
+  //     description: 'YouTube/TikTok scripts',
+  //     icon: Video,
+  //     credits: 8,
+  //     time: '3 min',
+  //     gradient: 'from-red-500 to-pink-500',
+  //     available: false,
+  //     comingSoon: true
+  //   }
+  // ]
   
   // Form state (keeping for advanced mode)
   const [formData, setFormData] = useState<BloggerRequest>({
@@ -154,12 +145,12 @@ export default function Dashboard() {
     }
   }, [api])
 
-  const handlePurchaseCredits = async (packageId: string) => {
-    // Handle package purchase - this would integrate with payment processor
-    console.log('Purchase package:', packageId)
-    // After successful purchase, reload user data
-    await loadUserData()
-  }
+  // Handle package purchase - this would integrate with payment processor
+  // const handlePurchaseCredits = async (packageId: string) => {
+  //   console.log('Purchase package:', packageId)
+  //   // After successful purchase, reload user data
+  //   await loadUserData()
+  // }
 
   const handleViewArticle = (usageId: number) => {
     router.push(`/editor/${usageId}`)
@@ -207,20 +198,17 @@ export default function Dashboard() {
         
         // Modal will handle the completion flow - no auto-redirect here
       } else if (updated.status === "in_progress") {
-        // Simulate step progression for better UX
-        const elapsed = Date.now() - (updated.started_at ? new Date(updated.started_at).getTime() : Date.now())
-        const elapsedSeconds = elapsed / 1000
-        
-        if (elapsedSeconds > 30 && currentStepIndex < 1) {
-          setCurrentStepIndex(1)
-        } else if (elapsedSeconds > 90 && currentStepIndex < 2) {
-          setCurrentStepIndex(2)
+        // Simulate step progression for better UX based on current step
+        if (currentStepIndex === 0) {
+          setTimeout(() => setCurrentStepIndex(1), 15000) // Move to step 1 after 15s
+        } else if (currentStepIndex === 1) {
+          setTimeout(() => setCurrentStepIndex(2), 30000) // Move to step 2 after 30s more
         }
       }
     } catch (error) {
       console.error("Failed to check status:", error)
     }
-  }, [api, currentGeneration, loadUserData, currentStepIndex, pipelineSteps.length, router])
+  }, [api, currentGeneration, loadUserData, currentStepIndex, pipelineSteps.length])
 
   useEffect(() => {
     loadUserData()
@@ -235,7 +223,8 @@ export default function Dashboard() {
     return () => clearInterval(interval)
   }, [currentGeneration, checkGenerationStatus])
 
-  const handleWizardComplete = async (wizardData: { topic: string }) => {
+  const handleWizardComplete = async (wizardData: unknown) => {
+    const data = wizardData as { topic: string }
     setShowWizard(false)
     setWizardTopic('')
     setIsGenerating(true)
@@ -243,7 +232,7 @@ export default function Dashboard() {
     
     try {
       const requestData: BloggerRequest = {
-        topic: wizardData.topic,
+        topic: data.topic,
         search_depth: "advanced",
         search_topic: "general", 
         time_range: "month",
@@ -498,7 +487,7 @@ export default function Dashboard() {
                         Quick Create
                       </Button>
                       <Button
-                        variant={blogCreationMode === 'expert' ? 'default' : 'outline'}
+                        variant="outline"
                         onClick={() => setBlogCreationMode('expert')}
                         className="flex-1"
                       >
@@ -561,7 +550,7 @@ export default function Dashboard() {
                   <div className="space-y-4">
                     <div className="flex items-center justify-center space-x-4 mb-6">
                       <Button
-                        variant={blogCreationMode === 'simple' ? 'default' : 'outline'}
+                        variant="outline"
                         onClick={() => setBlogCreationMode('simple')}
                         className="flex-1"
                       >
@@ -569,7 +558,7 @@ export default function Dashboard() {
                         Quick Create
                       </Button>
                       <Button
-                        variant={blogCreationMode === 'expert' ? 'default' : 'outline'}
+                        variant="default"
                         onClick={() => setBlogCreationMode('expert')}
                         className="flex-1 bg-gradient-brand text-white"
                       >

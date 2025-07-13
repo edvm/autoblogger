@@ -7,11 +7,7 @@ import {
   Edit3, 
   CheckCircle, 
   Clock, 
-  Zap, 
   Sparkles,
-  FileText,
-  TrendingUp,
-  Target,
   Loader2
 } from "lucide-react"
 
@@ -29,14 +25,12 @@ interface ProgressPipelineProps {
   steps: PipelineStep[]
   currentStepIndex: number
   isActive: boolean
-  onStepComplete?: (stepId: string, result?: string) => void
 }
 
 export function ProgressPipelineEnhanced({ 
   steps, 
   currentStepIndex, 
-  isActive, 
-  onStepComplete 
+  isActive
 }: ProgressPipelineProps) {
   const [timeElapsed, setTimeElapsed] = useState<{ [key: string]: number }>({})
   const [currentStepStartTime, setCurrentStepStartTime] = useState<number | null>(null)
@@ -63,7 +57,7 @@ export function ProgressPipelineEnhanced({
     if (isActive && currentStepIndex < steps.length) {
       setCurrentStepStartTime(Date.now())
     }
-  }, [currentStepIndex, isActive])
+  }, [currentStepIndex, isActive, steps.length])
 
   const getStepStatus = (index: number) => {
     if (index < currentStepIndex) return 'completed'

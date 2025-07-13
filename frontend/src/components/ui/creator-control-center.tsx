@@ -14,8 +14,6 @@ import {
   Instagram,
   Video,
   Mail,
-  Target,
-  Crown,
   TrendingUp,
   TrendingDown,
   Shield,
@@ -31,7 +29,7 @@ import {
 
 interface CreatorControlCenterProps {
   balance: CreditBalance | null
-  onCreateContent: () => void
+  onCreateContent: (data: ContentCreationData) => void
   onPurchaseCredits: () => void
   isGenerating?: boolean
   className?: string

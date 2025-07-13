@@ -5,7 +5,7 @@ import { useAuth } from "@clerk/nextjs"
 import { useRouter } from "next/navigation"
 import { Navigation } from "@/components/navigation"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { createApiClient, type CreditBalance, type CreditTransaction, type UserContentItem } from "@/lib/api"
 import { 
@@ -14,14 +14,11 @@ import {
   Loader2, 
   Crown,
   Users,
-  Check,
   Instagram,
   Sparkles,
-  TrendingUp,
   Calendar,
   FileText,
-  ExternalLink,
-  ArrowRight
+  ExternalLink
 } from "lucide-react"
 
 export const dynamic = 'force-dynamic'
@@ -300,7 +297,7 @@ export default function Credits() {
                   </div>
                 ) : (
                   <div className="divide-y divide-border">
-                    {transactions.map((transaction, index) => {
+                    {transactions.map((transaction) => {
                       // Find corresponding content for this transaction
                       const relatedContent = contentHistory.find(content => 
                         Math.abs(new Date(content.created_at).getTime() - new Date(transaction.created_at).getTime()) < 60000 // Within 1 minute

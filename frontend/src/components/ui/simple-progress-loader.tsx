@@ -3,8 +3,7 @@
 import { useState, useEffect } from "react"
 import { 
   Sparkles, 
-  Clock,
-  Loader2
+  Clock
 } from "lucide-react"
 
 interface SimpleProgressLoaderProps {
@@ -60,7 +59,6 @@ export function SimpleProgressLoader({
   topic 
 }: SimpleProgressLoaderProps) {
   const [currentMessage, setCurrentMessage] = useState(LOADING_MESSAGES[0])
-  const [messageIndex, setMessageIndex] = useState(0)
 
   // Calculate progress percentage
   const progress = totalSteps > 0 ? Math.min((currentStepIndex / totalSteps) * 100, 95) : 0
@@ -70,10 +68,10 @@ export function SimpleProgressLoader({
     if (!isActive) return
 
     const interval = setInterval(() => {
-      setMessageIndex(prev => {
-        const nextIndex = (prev + 1) % LOADING_MESSAGES.length
-        setCurrentMessage(LOADING_MESSAGES[nextIndex])
-        return nextIndex
+      setCurrentMessage(prev => {
+        const currentIndex = LOADING_MESSAGES.indexOf(prev)
+        const nextIndex = (currentIndex + 1) % LOADING_MESSAGES.length
+        return LOADING_MESSAGES[nextIndex]
       })
     }, 3500) // Change message every 3.5 seconds
 
@@ -83,7 +81,6 @@ export function SimpleProgressLoader({
   // Initialize with random message on mount
   useEffect(() => {
     const randomIndex = Math.floor(Math.random() * LOADING_MESSAGES.length)
-    setMessageIndex(randomIndex)
     setCurrentMessage(LOADING_MESSAGES[randomIndex])
   }, [])
 
@@ -110,7 +107,7 @@ export function SimpleProgressLoader({
             Creating content for:
           </h4>
           <p className="text-violet-700 dark:text-violet-300 font-medium">
-            "{topic}"
+            &quot;{topic}&quot;
           </p>
         </div>
       )}

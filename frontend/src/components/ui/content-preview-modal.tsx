@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -43,13 +43,7 @@ export function ContentPreviewModal({
   const [error, setError] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
 
-  useEffect(() => {
-    if (isOpen && item.has_content) {
-      loadContent()
-    }
-  }, [isOpen, item.id, item.has_content, loadContent])
-
-  const loadContent = async () => {
+  const loadContent = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
@@ -61,7 +55,13 @@ export function ContentPreviewModal({
     } finally {
       setLoading(false)
     }
-  }
+  }, [api, item.id])
+
+  useEffect(() => {
+    if (isOpen && item.has_content) {
+      loadContent()
+    }
+  }, [isOpen, item.id, item.has_content, loadContent])
 
   const handleEdit = () => {
     router.push(`/editor/${item.id}`)
@@ -88,7 +88,7 @@ export function ContentPreviewModal({
           text: content.final_content.substring(0, 200) + "...",
           url: window.location.href
         })
-      } catch (error) {
+      } catch {
         // Fallback to copying link
         handleCopy()
       }

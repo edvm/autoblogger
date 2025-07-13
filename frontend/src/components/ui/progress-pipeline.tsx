@@ -20,7 +20,7 @@ export interface ProgressPipelineProps extends React.HTMLAttributes<HTMLDivEleme
 }
 
 const ProgressPipeline = React.forwardRef<HTMLDivElement, ProgressPipelineProps>(
-  ({ className, stages, currentStage, ...props }, ref) => {
+  ({ className, stages, ...props }, ref) => {
     return (
       <div
         ref={ref}
@@ -43,9 +43,8 @@ const ProgressPipeline = React.forwardRef<HTMLDivElement, ProgressPipelineProps>
           <div className="absolute left-8 top-12 bottom-0 w-0.5 bg-warm-gray" />
           
           <div className="space-y-8">
-            {stages.map((stage, index) => {
+            {stages.map((stage) => {
               const Icon = stage.icon
-              const isActive = stage.id === currentStage
               const isCompleted = stage.status === "completed"
               const isInProgress = stage.status === "in_progress"
               const hasError = stage.status === "error"

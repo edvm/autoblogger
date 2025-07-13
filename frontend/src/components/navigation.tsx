@@ -6,7 +6,7 @@ import { SignInButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs"
 import { ThemeToggle } from "./theme-toggle"
 import { Button } from "./ui/button"
 import { cn } from "@/lib/utils"
-import { Sparkles, CreditCard, History, FileText } from "lucide-react"
+import { Sparkles, CreditCard, FileText } from "lucide-react"
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: Sparkles },
