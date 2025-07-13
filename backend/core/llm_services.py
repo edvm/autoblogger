@@ -25,10 +25,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import openai
 from abc import ABC, abstractmethod
 from .state import WorkflowState
-from configs.config import OPENAI_API_KEY
+from configs.config import GEMINI_API_KEY
 from configs.logging_config import logger
 
-client = openai.OpenAI(api_key=OPENAI_API_KEY)
+try:
+    from google import genai
+except ImportError:
+    genai = None
 
 ERROR_FLAG = "fucked up"
 
@@ -100,8 +103,30 @@ class LLMService(ABC):
 
 
 class OpenAIService(LLMService):
+    """OpenAI LLM service implementation.
+
+    This service provides integration with OpenAI's API for generating text
+    responses using models like GPT-4 and GPT-3.5. It handles API key validation,
+    request formatting, and response processing with accurate token usage tracking.
+
+    Attributes:
+        client: The OpenAI API client instance.
+
+    Example:
+        >>> service = OpenAIService(api_key="your-openai-api-key")
+        >>> response = service.generate_response(
+        ...     prompt="What is machine learning?",
+        ...     system_message="You are a knowledgeable AI assistant.",
+        ...     model="gpt-4o"
+        ... )
+        >>> print(response.content)
+    """
+
     def __init__(self, api_key: str):
         """Initializes the OpenAI client with the provided API key."""
+        if not api_key:
+            raise LLMServiceException("OPENAI_API_KEY is required but not provided")
+
         self.client = openai.OpenAI(api_key=api_key)
 
     def generate_response(
@@ -144,6 +169,137 @@ class OpenAIService(LLMService):
         except Exception as e:
             logger.error(f"An error occurred while querying the OpenAI API: {e}")
             raise LLMServiceException(f"Error querying OpenAI API: {e}")
+
+
+class GeminiService(LLMService):
+    """Google Gemini LLM service implementation.
+
+    This service provides integration with Google's Gemini API for generating
+    text responses. It handles API key validation, request formatting, and
+    response processing with estimated token usage tracking.
+
+    Attributes:
+        client: The Google Gemini API client instance.
+
+    Example:
+        >>> service = GeminiService(api_key="your-gemini-api-key")
+        >>> response = service.generate_response(
+        ...     prompt="What is AI?",
+        ...     system_message="You are a helpful assistant.",
+        ...     model="gemini-2.5-flash"
+        ... )
+        >>> print(response.content)
+    """
+
+    def __init__(self, api_key: str):
+        """Initializes the Gemini client with the provided API key."""
+        if genai is None:
+            raise LLMServiceException(
+                "google-genai package not installed. Install with: pip install google-genai"
+            )
+        if not api_key:
+            raise LLMServiceException("GEMINI_API_KEY is required but not provided")
+
+        self.client = genai.Client(api_key=api_key)
+
+    def generate_response(
+        self,
+        prompt: str,
+        system_message: str,
+        model: str,
+        temperature: float = 0.7,
+        max_tokens: int = 4000,
+    ) -> LLMServiceResponse:
+        """Generates a response from the Gemini LLM.
+
+        Args:
+            prompt (str): The user-facing prompt.
+            system_message (str): The system message to set the LLM's persona/role.
+            model (str): The model to use (e.g., 'gemini-2.5-flash').
+            temperature (float): Sampling temperature to use.
+            max_tokens (int): The maximum number of tokens to generate.
+        Returns:
+            LLMServiceResponse: An object containing the content and token usage.
+        Raises:
+            LLMServiceException: If an error occurs during the LLM API call.
+        """
+        try:
+            # Combine system message and user prompt for Gemini
+            combined_prompt = f"{system_message}\n\nUser: {prompt}"
+
+            response = self.client.models.generate_content(
+                model=model,
+                contents=combined_prompt,
+                config={
+                    "temperature": temperature,
+                    "max_output_tokens": max_tokens,
+                },
+            )
+
+            content = response.text if hasattr(response, "text") else None
+
+            # Gemini API doesn't provide detailed token usage in the same way as OpenAI
+            # We'll estimate based on response length for now
+            estimated_tokens = len(content.split()) * 1.3 if content else 0
+            token_usage = LLMUsage(int(estimated_tokens)) if content else None
+
+            return LLMServiceResponse(content=content, usage=token_usage)
+        except Exception as e:
+            logger.error(f"An error occurred while querying the Gemini API: {e}")
+            raise LLMServiceException(f"Error querying Gemini API: {e}")
+
+
+def create_llm_service(
+    provider: str | None = None, api_key: str | None = None
+) -> LLMService:
+    """Factory function to create LLM service instances based on provider configuration.
+
+    This function creates the appropriate LLM service (OpenAI or Gemini) based on the
+    provider setting and validates the required API key.
+
+    Args:
+        provider: The LLM provider to use ("openai" or "gemini"). If None, uses
+                 LLM_PROVIDER from config.
+        api_key: The API key to use. If None, uses the appropriate key from config
+                based on the provider.
+
+    Returns:
+        LLMService: An instance of the appropriate LLM service.
+
+    Raises:
+        LLMServiceException: If the provider is invalid or required dependencies
+                           are missing.
+
+    Example:
+        >>> # Use default provider from config
+        >>> service = create_llm_service()
+
+        >>> # Explicitly specify provider
+        >>> service = create_llm_service(provider="gemini")
+
+        >>> # Override API key
+        >>> service = create_llm_service(provider="openai", api_key="custom-key")
+    """
+    from configs.config import LLM_PROVIDER, OPENAI_API_KEY, GEMINI_API_KEY
+
+    # Use provided provider or fall back to config
+    selected_provider = (provider or LLM_PROVIDER).lower()
+
+    if selected_provider == "openai":
+        selected_api_key = api_key or OPENAI_API_KEY
+        if not selected_api_key:
+            raise LLMServiceException("OPENAI_API_KEY is required for OpenAI provider")
+        return OpenAIService(api_key=selected_api_key)
+    elif selected_provider == "gemini":
+        selected_api_key = api_key or GEMINI_API_KEY
+        if not selected_api_key:
+            raise LLMServiceException("GEMINI_API_KEY is required for Gemini provider")
+        return GeminiService(api_key=selected_api_key)
+    else:
+        raise LLMServiceException(
+            f"Invalid LLM provider '{selected_provider}'. "
+            "Supported providers: 'openai', 'gemini'"
+        )
 
 
 def query_llm(

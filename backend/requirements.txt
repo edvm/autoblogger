@@ -2,6 +2,7 @@
 python-dotenv
 pydantic
 openai
+google-genai
 rich  # For pretty logging
 redis
 
