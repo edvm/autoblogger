@@ -45,8 +45,16 @@ GEMINI_LARGE_MODEL = "gemini-2.5-flash"  # Using same model for now
 FAST_LLM_MODEL = GEMINI_FAST_MODEL if LLM_PROVIDER == "gemini" else OPENAI_FAST_MODEL
 LARGE_LLM_MODEL = GEMINI_LARGE_MODEL if LLM_PROVIDER == "gemini" else OPENAI_LARGE_MODEL
 
+# Authentication configuration
+ENABLE_CLERK_AUTH = os.getenv("ENABLE_CLERK_AUTH", "true").lower() == "true"
+ENABLE_SYSTEM_AUTH = os.getenv("ENABLE_SYSTEM_AUTH", "true").lower() == "true"
+
 # Clerk configuration
 CLERK_SECRET_KEY = os.getenv("CLERK_SECRET_KEY")
+
+# System authentication configuration
+SYSTEM_AUTH_SECRET_KEY = os.getenv("SYSTEM_AUTH_SECRET_KEY", "your-secret-key-change-in-production")
+API_KEY_EXPIRATION_DAYS = int(os.getenv("API_KEY_EXPIRATION_DAYS", "365"))
 
 # Security configuration
 ENVIRONMENT = os.getenv("ENVIRONMENT", "development").lower()

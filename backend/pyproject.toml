@@ -5,13 +5,15 @@ description = "Generate articles, blog posts, etc."
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "bcrypt>=4.3.0",
     "clerk-backend-api>=3.0.3",
     "fastapi>=0.115.12",
     "google-genai>=0.8.5",
     "openai>=1.84.0",
-    "pydantic>=2.11.5",
+    "pydantic[email]>=2.11.5",
     "pyjwt[crypto]>=2.10.1",
     "pytest>=8.4.0",
+    "pytest-asyncio>=1.0.0",
     "pytest-mock>=3.14.1",
     "python-dotenv>=1.1.0",
     "redis>=6.2.0",
@@ -58,6 +60,9 @@ markers = [
     "slow: Slow running tests",
     "api: API tests",
     "llm: Tests that require LLM providers",
+    "asyncio: Async tests",
+    "auth: Authentication tests",
+    "security: Security tests",
 ]
 filterwarnings = [
     "ignore::pytest.PytestUnraisableExceptionWarning",
