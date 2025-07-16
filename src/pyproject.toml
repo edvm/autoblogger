@@ -109,6 +109,9 @@ extend-exclude = [
     ".venv",
     "venv",
     "node_modules",
+    "tests/",
+    "htmlcov/",
+    "scripts/",
 ]
 
 [tool.ruff.lint]

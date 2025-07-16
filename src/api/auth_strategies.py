@@ -193,7 +193,7 @@ class ApiKeyAuthStrategy(AuthStrategy):
         # Find the API key in database
         api_key_obj = (
             db.query(ApiKey)
-            .filter(ApiKey.key_hash == key_hash, ApiKey.is_active == True)
+            .filter(ApiKey.key_hash == key_hash, ApiKey.is_active)
             .first()
         )
 
