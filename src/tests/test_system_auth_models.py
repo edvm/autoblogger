@@ -5,6 +5,7 @@ Unit tests for authentication system database models.
 import hashlib
 import secrets
 from datetime import datetime, timedelta
+from sqlite3 import IntegrityError
 from unittest.mock import Mock, patch
 
 import pytest
@@ -395,7 +396,7 @@ class TestModelIntegration:
         test_database_session.add(system_user2)
 
         # Should raise integrity error
-        with pytest.raises(Exception):  # SQLAlchemy IntegrityError
+        with pytest.raises(IntegrityError):  # SQLAlchemy IntegrityError
             test_database_session.commit()
 
     def test_cascade_operations(self, test_database_session):

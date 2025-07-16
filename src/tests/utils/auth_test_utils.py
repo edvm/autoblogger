@@ -2,8 +2,8 @@
 Authentication test utilities for AutoBlogger backend tests.
 """
 
-from datetime import datetime, timedelta
-from typing import Any, Dict, Optional
+from datetime import datetime
+from typing import Any
 from unittest.mock import Mock
 
 from api.database import ApiKey, AuthType, SystemUser, User

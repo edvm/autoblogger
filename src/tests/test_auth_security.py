@@ -547,20 +547,6 @@ class TestBruteForceProtection:
 class TestSecurityHeaders:
     """Test cases for security headers."""
 
-    def test_security_headers_present(self):
-        """Test that security headers are present."""
-        client = TestClient(app)
-
-        response = client.get("/health")
-
-        # Security headers should be present (if implemented)
-        headers = response.headers
-
-        # These would need to be implemented in middleware
-        # assert "X-Content-Type-Options" in headers
-        # assert "X-Frame-Options" in headers
-        # assert "X-XSS-Protection" in headers
-
     def test_cors_headers_secure(self):
         """Test CORS headers are securely configured."""
         client = TestClient(app)

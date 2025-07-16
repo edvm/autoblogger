@@ -1,4 +1,4 @@
-.PHONY: help format backend frontend all clean install-backend install-frontend install test lint typecheck
+.PHONY: help format backend frontend all clean install-backend install-frontend install test test-core test-api test-all lint typecheck
 
 # Default target - show help when no target is specified
 .DEFAULT_GOAL := help
@@ -12,10 +12,19 @@ help:
 	@echo "  format         - Format all backend Python files using ruff"
 	@echo "  lint           - Run linting on backend code"
 	@echo "  typecheck      - Run type checking on backend code"
-	@echo "  test           - Run backend tests"
+	@echo ""
+	@echo "Testing:"
+	@echo "  test           - Run core backend tests (default, stable)"
+	@echo "  test-core      - Run core backend tests (same as test)"
+	@echo "  test-api       - Run API and system tests (may need setup)"
+	@echo "  test-all       - Run all tests including potentially unstable ones"
+	@echo ""
+	@echo "Services:"
 	@echo "  backend        - Start only the backend API server"
 	@echo "  frontend       - Start only the frontend development server"
 	@echo "  all           - Start both backend and frontend"
+	@echo ""
+	@echo "Dependencies:"
 	@echo "  install       - Install all dependencies (backend + frontend)"
 	@echo "  install-backend - Install backend dependencies"
 	@echo "  install-frontend - Install frontend dependencies"
@@ -94,11 +103,29 @@ clean:
 	rm -rf src/pytest-report.xml
 	@echo "✓ Clean complete"
 
-# Run backend tests
+# Run core backend tests (default)
 test:
-	@echo "Running backend tests..."
+	@echo "Running core backend tests..."
 	cd src && uv run python scripts/run_tests.py
-	@echo "✓ Backend tests complete"
+	@echo "✓ Core backend tests complete"
+
+# Run core backend tests (explicit)
+test-core:
+	@echo "Running core backend tests..."
+	cd src && uv run python scripts/run_tests.py
+	@echo "✓ Core backend tests complete"
+
+# Run API and system tests
+test-api:
+	@echo "Running API and system tests..."
+	cd src && uv run python scripts/run_tests.py --api
+	@echo "✓ API and system tests complete"
+
+# Run all tests including potentially unstable ones
+test-all:
+	@echo "Running ALL backend tests..."
+	cd src && uv run python scripts/run_tests.py --all
+	@echo "✓ All backend tests complete"
 
 # Run linting on backend code
 lint:

@@ -147,21 +147,34 @@ autoblogger/
 ## Development
 
 ### Testing
+
+#### Using Makefile (Recommended)
+```bash
+# From project root - these commands handle directory changes automatically
+make test           # Run core tests (stable, for development)
+make test-core      # Same as 'make test' (explicit)
+make test-api       # Run API and system tests (may need setup)
+make test-all       # Run all tests including potentially unstable ones
+```
+
+**Test Categories:**
+- **Core Tests** (`make test`): Stable functionality tests including services, authentication, and all agents (143 tests)
+- **API Tests** (`make test-api`): Endpoint and system tests that may require environment setup (67 tests)
+- **All Tests** (`make test-all`): Everything including potentially unstable tests (210+ tests)
+
+#### Direct Commands
 ```bash
 # From src directory
 cd src
-uv run pytest tests/
+uv run python scripts/run_tests.py          # Core tests (default)
+uv run python scripts/run_tests.py --api    # API tests only
+uv run python scripts/run_tests.py --all    # All tests
+uv run python scripts/run_tests.py --help   # Show test runner help
 
-# Run with verbose output
+# Raw pytest (not recommended - use run_tests.py instead)
 cd src
-uv run pytest tests/ -v
-
-# Run specific test modules
-cd src
-uv run pytest tests/unittests/agents/
-
-# Or use Makefile from project root
-make test
+uv run pytest tests/ -v                     # All tests with verbose output
+uv run pytest tests/unittests/agents/       # Specific test modules
 ```
 
 ### Code Quality
@@ -191,12 +204,31 @@ uv add --dev package-name
 
 ```bash
 # From project root - these commands handle directory changes automatically
+
+# Help and Information
 make                # Show all available commands (same as 'make help')
-make backend        # Start backend API server
-make test           # Run all tests
+
+# Testing (choose based on your needs)
+make test           # Run core tests (recommended for development)
+make test-core      # Run core tests (same as above, explicit)
+make test-api       # Run API and system tests (may need setup)
+make test-all       # Run all tests including potentially unstable ones
+
+# Code Quality
 make lint           # Run code linting
 make format         # Format code
-make clean          # Clean build artifacts
+make typecheck      # Run type checking (if mypy is configured)
+
+# Services
+make backend        # Start backend API server
+make frontend       # Start frontend development server
+make all            # Start both backend and frontend
+
+# Dependencies and Cleanup
+make install        # Install all dependencies (backend + frontend)
+make install-backend # Install backend dependencies only
+make install-frontend # Install frontend dependencies only
+make clean          # Clean build artifacts and dependencies
 ```
 
 ## Configuration
@@ -249,8 +281,17 @@ This project is licensed under the GNU Affero General Public License v3.0 - see 
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
-4. Run tests and linting
-5. Submit a pull request
+4. Run tests and linting:
+   ```bash
+   make test          # Run core tests
+   make lint          # Check code style
+   make format        # Format code
+   ```
+5. For comprehensive testing before submitting:
+   ```bash
+   make test-all      # Run all tests
+   ```
+6. Submit a pull request
 
 ## Support
 
