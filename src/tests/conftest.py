@@ -395,7 +395,7 @@ def mock_test_clerk_user():
 
 @pytest.fixture
 def authenticated_client(mock_test_user):
-    """Fixture providing an authenticated test client."""
+    """Fixture providing an authenticated test client with mock database (legacy)."""
     from api.auth import get_current_user
     from api.database import User, get_db
     from api.main import app
@@ -419,11 +419,49 @@ def authenticated_client(mock_test_user):
 
 
 @pytest.fixture
+def authenticated_client_with_real_db(test_database_session):
+    """Fixture providing an authenticated test client with real database session."""
+    from api.auth import get_current_user
+    from api.database import get_db
+    from api.main import app
+    from tests.utils.auth_test_utils import UserFactory
+
+    # Create a real user in the test database
+    test_user = UserFactory.create_system_user(
+        id=1,
+        system_user_id=1,
+        email="test@example.com",
+        username="testuser",
+        first_name="Test",
+        last_name="User",
+        credits=100,
+    )
+    test_database_session.add(test_user)
+    test_database_session.commit()
+
+    # Override dependencies
+    def get_current_user_override():
+        return test_user
+
+    def get_db_override():
+        return test_database_session
+
+    app.dependency_overrides[get_current_user] = get_current_user_override
+    app.dependency_overrides[get_db] = get_db_override
+
+    client = TestClient(app)
+    yield client
+
+    # Clean up overrides
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture
 def authenticated_client_with_custom_user():
-    """Fixture factory for creating authenticated client with custom user."""
+    """Fixture factory for creating authenticated client with custom user (legacy mock version)."""
     created_clients = []
 
-    def _create_client(user: Mock = None, clerk_user: ClerkUser = None):
+    def _create_client(user: Mock = None, clerk_user=None):
         from api.auth import get_current_user
         from api.database import get_db
         from api.main import app
@@ -456,26 +494,153 @@ def authenticated_client_with_custom_user():
     app.dependency_overrides.clear()
 
 
+@pytest.fixture
+def authenticated_client_with_real_db_factory(test_database_session):
+    """Fixture factory for creating authenticated clients with real database and custom users."""
+    created_clients = []
+
+    def _create_client(user_data: dict = None, auth_type=None):
+        from api.auth import get_current_user
+        from api.database import get_db, AuthType
+        from api.main import app
+        from tests.utils.auth_test_utils import UserFactory
+
+        # Set default user data
+        default_user_data = {
+            "id": 1,
+            "email": "test@example.com",
+            "username": "testuser",
+            "first_name": "Test",
+            "last_name": "User",
+            "credits": 100,
+        }
+        
+        if user_data:
+            default_user_data.update(user_data)
+        
+        # Create user based on auth type
+        if auth_type == AuthType.CLERK:
+            test_user = UserFactory.create_clerk_user(
+                clerk_user_id="clerk_user_123",
+                **default_user_data
+            )
+        else:
+            test_user = UserFactory.create_system_user(
+                system_user_id=1,
+                **default_user_data
+            )
+
+        test_database_session.add(test_user)
+        test_database_session.commit()
+
+        # Clear any existing overrides first
+        app.dependency_overrides.clear()
+
+        # Override dependencies
+        def get_current_user_override():
+            return test_user
+
+        def get_db_override():
+            return test_database_session
+
+        app.dependency_overrides[get_current_user] = get_current_user_override
+        app.dependency_overrides[get_db] = get_db_override
+
+        client = TestClient(app)
+        created_clients.append((client, test_user))
+        return client
+
+    yield _create_client
+
+    # Clean up after all tests are done
+    from api.main import app
+    app.dependency_overrides.clear()
+
+
 # New Authentication Test Fixtures
 
 
-@pytest.fixture
-def test_database_session():
-    """Fixture providing an in-memory test database session."""
+@pytest.fixture(scope="function")
+def test_database_engine():
+    """Fixture providing a test database engine for each test."""
     from sqlalchemy import create_engine
-    from sqlalchemy.orm import sessionmaker
-
-    from api.database import Base
+    
+    # Import all models to ensure they're registered with Base.metadata
+    # This is critical - all models must be imported before create_all()
+    from api.database import (
+        Base, 
+        User, 
+        CreditTransaction, 
+        AppUsage, 
+        SystemUser, 
+        ApiKey,
+        # Import any additional models that might exist
+    )
 
     # Create in-memory SQLite database for testing
-    engine = create_engine("sqlite:///:memory:")
+    # Using a file:// URI with a unique name to share between connections
+    import uuid
+    db_name = f"test_db_{uuid.uuid4().hex}"
+    engine = create_engine(
+        f"sqlite:///{db_name}.db",
+        connect_args={"check_same_thread": False},
+        echo=False,  # Set to True for SQL debugging
+    )
+    
+    # Ensure all tables are created
     Base.metadata.create_all(engine)
+    
+    # Verify tables were created (for debugging)
+    from sqlalchemy import inspect
+    inspector = inspect(engine)
+    tables = inspector.get_table_names()
+    expected_tables = ["users", "system_users", "api_keys", "credit_transactions", "app_usages"]
+    for table in expected_tables:
+        if table not in tables:
+            raise RuntimeError(f"Table '{table}' was not created in test database")
+    
+    yield engine
+    
+    # Cleanup
+    Base.metadata.drop_all(engine)
+    engine.dispose()
+    
+    # Remove the test database file
+    import os
+    try:
+        os.unlink(f"{db_name}.db")
+    except OSError:
+        pass  # File may not exist
 
-    TestSession = sessionmaker(bind=engine)
+
+@pytest.fixture(scope="function")
+def test_database_session(test_database_engine):
+    """Fixture providing an in-memory test database session with automatic cleanup."""
+    from sqlalchemy.orm import sessionmaker
+
+    TestSession = sessionmaker(bind=test_database_engine)
     session = TestSession()
 
     yield session
 
+    session.close()
+
+
+@pytest.fixture(scope="function")
+def test_database_session_transactional(test_database_engine):
+    """Fixture providing a transactional test database session that rolls back after each test."""
+    from sqlalchemy.orm import sessionmaker
+
+    TestSession = sessionmaker(bind=test_database_engine)
+    session = TestSession()
+    
+    # Start a transaction
+    transaction = session.begin()
+    
+    yield session
+    
+    # Rollback the transaction to ensure clean state
+    transaction.rollback()
     session.close()
 
 
@@ -562,24 +727,40 @@ def test_api_key_pair():
 
 
 @pytest.fixture
-def authenticated_api_key_client():
-    """Fixture providing an authenticated test client using API key."""
+def authenticated_api_key_client(test_database_session):
+    """Fixture providing an authenticated test client using API key with real database."""
     from fastapi.testclient import TestClient
 
     from api.auth import get_current_user
     from api.database import get_db
     from api.main import app
-    from tests.utils.auth_test_utils import UserFactory
+    from tests.utils.auth_test_utils import UserFactory, SystemUserFactory
 
-    # Create a system user for testing
-    test_user = UserFactory.create_mock_user(auth_type=AuthType.SYSTEM)
+    # Create a real system user and user in the test database
+    system_user = SystemUserFactory.create_system_user(
+        id=1,
+        username="testuser",
+        email="test@example.com",
+        password="testpassword123",
+    )
+    test_database_session.add(system_user)
+    test_database_session.commit()
+
+    test_user = UserFactory.create_system_user(
+        id=1,
+        system_user_id=system_user.id,
+        email="test@example.com",
+        username="testuser",
+    )
+    test_database_session.add(test_user)
+    test_database_session.commit()
 
     # Override dependencies
     def get_current_user_override():
         return test_user
 
     def get_db_override():
-        return Mock()
+        return test_database_session
 
     app.dependency_overrides[get_current_user] = get_current_user_override
     app.dependency_overrides[get_db] = get_db_override
@@ -593,8 +774,8 @@ def authenticated_api_key_client():
 
 
 @pytest.fixture
-def authenticated_clerk_client():
-    """Fixture providing an authenticated test client using Clerk."""
+def authenticated_clerk_client(test_database_session):
+    """Fixture providing an authenticated test client using Clerk with real database."""
     from fastapi.testclient import TestClient
 
     from api.auth import get_current_user
@@ -602,17 +783,22 @@ def authenticated_clerk_client():
     from api.main import app
     from tests.utils.auth_test_utils import UserFactory
 
-    # Create a Clerk user for testing
-    test_user = UserFactory.create_mock_user(
-        auth_type=AuthType.CLERK, clerk_user_id="clerk_user_123", system_user_id=None
+    # Create a real Clerk user in the test database
+    test_user = UserFactory.create_clerk_user(
+        id=1,
+        clerk_user_id="clerk_user_123",
+        email="clerk@example.com",
+        username="clerkuser",
     )
+    test_database_session.add(test_user)
+    test_database_session.commit()
 
     # Override dependencies
     def get_current_user_override():
         return test_user
 
     def get_db_override():
-        return Mock()
+        return test_database_session
 
     app.dependency_overrides[get_current_user] = get_current_user_override
     app.dependency_overrides[get_db] = get_db_override

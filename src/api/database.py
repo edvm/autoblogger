@@ -150,7 +150,7 @@ class SystemUser(Base):
 
     # Relationships
     api_keys = relationship("ApiKey", back_populates="system_user")
-    user = relationship("User", back_populates="system_user")
+    user = relationship("User", back_populates="system_user", uselist=False)
 
     def set_password(self, password: str):
         """Set password with hashing."""

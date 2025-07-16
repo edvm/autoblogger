@@ -5,10 +5,10 @@ Unit tests for authentication system database models.
 import hashlib
 import secrets
 from datetime import datetime, timedelta
-from sqlite3 import IntegrityError
 from unittest.mock import Mock, patch
 
 import pytest
+from sqlalchemy.exc import IntegrityError
 
 from api.database import ApiKey, AuthType, SystemUser, User
 from tests.utils.auth_test_utils import ApiKeyFactory, SystemUserFactory, UserFactory
@@ -266,27 +266,36 @@ class TestUser:
         assert user.credits == 100
         assert user.is_active is True
 
-    def test_user_default_auth_type(self):
+    def test_user_default_auth_type(self, test_database_session):
         """Test that default auth type is CLERK for backward compatibility."""
         user = User(
-            clerk_user_id="clerk_user_123", email="test@example.com", credits=100
+            clerk_user_id="clerk_user_123", email="test@example.com"
         )
+        test_database_session.add(user)
+        test_database_session.commit()
+        test_database_session.refresh(user)
 
         assert user.auth_type == AuthType.CLERK
 
-    def test_user_default_credits(self):
+    def test_user_default_credits(self, test_database_session):
         """Test that default credits are set correctly."""
         user = User(
             auth_type=AuthType.SYSTEM, system_user_id=1, email="test@example.com"
         )
+        test_database_session.add(user)
+        test_database_session.commit()
+        test_database_session.refresh(user)
 
         assert user.credits == 100
 
-    def test_user_default_active_status(self):
+    def test_user_default_active_status(self, test_database_session):
         """Test that default active status is True."""
         user = User(
             auth_type=AuthType.SYSTEM, system_user_id=1, email="test@example.com"
         )
+        test_database_session.add(user)
+        test_database_session.commit()
+        test_database_session.refresh(user)
 
         assert user.is_active is True
 

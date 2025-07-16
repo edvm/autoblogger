@@ -337,21 +337,6 @@ class AuthTestHelpers:
     """Helper functions for authentication tests."""
 
     @staticmethod
-    def create_test_database_session():
-        """Create a test database session."""
-        from sqlalchemy import create_engine
-        from sqlalchemy.orm import sessionmaker
-
-        from api.database import Base
-
-        # Create in-memory SQLite database for testing
-        engine = create_engine("sqlite:///:memory:")
-        Base.metadata.create_all(engine)
-
-        TestSession = sessionmaker(bind=engine)
-        return TestSession()
-
-    @staticmethod
     def create_auth_headers(api_key: str) -> dict[str, str]:
         """Create authentication headers for API requests."""
         return {"X-API-Key": api_key, "Content-Type": "application/json"}
