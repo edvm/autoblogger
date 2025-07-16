@@ -3,7 +3,6 @@
 Test script to verify the new authentication system works.
 """
 
-
 import requests
 
 API_BASE_URL = "http://localhost:8000"
