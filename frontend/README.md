@@ -27,7 +27,7 @@ A professional Next.js frontend application for the AutoBlogger AI-powered blog 
 ### Prerequisites
 
 - Node.js 18+ and npm
-- A running AutoBlogger backend API (see `../backend/`)
+- A running AutoBlogger backend API (see `../src/`)
 - Clerk account for authentication
 
 ### Environment Setup

@@ -31,7 +31,7 @@ from core.middleware import (
 )
 
 # Import routers
-from .routers import apps, credits, users
+from .routers import apps, credits, system_auth, users
 
 """Main FastAPI application for AutoBlogger API."""
 
@@ -87,6 +87,7 @@ async def autoblogger_exception_handler(request: Request, exc: AutobloggerExcept
 app.include_router(users.router, prefix="/api/v1/users", tags=["users"])
 app.include_router(apps.router, prefix="/api/v1/apps", tags=["apps"])
 app.include_router(credits.router, prefix="/api/v1/credits", tags=["credits"])
+app.include_router(system_auth.router, prefix="/api/v1/auth", tags=["authentication"])
 
 
 @app.get("/")

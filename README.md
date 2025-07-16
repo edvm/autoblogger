@@ -27,18 +27,23 @@ AutoBlogger is a content generation platform that uses a multi-agent architectur
 
 1. Install dependencies using uv (recommended):
 ```bash
+# From the project root
+cd src
 uv sync
 ```
 
 Or with pip:
 ```bash
+cd src
 pip install -r requirements.txt
 ```
 
 2. Create environment file:
 ```bash
-# Create .env file in the backend directory
+# Create .env file in the src directory (if it doesn't exist)
+cd src
 touch .env
+# Then edit src/.env with your API keys (see Configuration section below)
 ```
 
 3. Configure your API keys and LLM provider in `.env`:
@@ -63,20 +68,52 @@ TAVILY_API_KEY=your_tavily_key_here
 
 #### CLI Mode
 ```bash
-# Direct execution
+# From the src directory
+cd src
 python cli.py "Your Topic Here"
 
 # Using uv (recommended)
+cd src
 uv run python cli.py "Your Topic"
 ```
 
 #### API Mode
 ```bash
-# Start the API server
+# From the src directory
+cd src
 uvicorn api.main:app --reload
 
 # Or using the provided script
-python run_api.py
+cd src
+python scripts/run_api.py
+
+# Or from project root using Makefile
+make backend
+
+# Or using the quick start script (recommended for development)
+./start.sh
+```
+
+## Project Structure
+
+```
+autoblogger/
+├── src/                     # Main source code directory
+│   ├── agents/             # Multi-agent system
+│   ├── api/                # FastAPI application
+│   ├── apps/               # Application modules
+│   ├── core/               # Core services
+│   ├── tools/              # Utility tools
+│   ├── configs/            # Configuration files
+│   ├── scripts/            # Utility scripts
+│   ├── tests/              # Test suite
+│   ├── cli.py              # Command-line interface
+│   └── pyproject.toml      # Python dependencies
+├── frontend/               # Next.js frontend (separate)
+├── docs/                   # Documentation
+├── Makefile               # Build automation
+├── start.sh               # Quick start script
+└── README.md              # This file
 ```
 
 ## Architecture
@@ -110,33 +147,88 @@ python run_api.py
 ## Development
 
 ### Testing
+
+#### Using Makefile (Recommended)
 ```bash
-# Run all tests
-pytest
+# From project root - these commands handle directory changes automatically
+make test           # Run core tests (stable, for development)
+make test-core      # Same as 'make test' (explicit)
+make test-api       # Run API and system tests (may need setup)
+make test-all       # Run all tests including potentially unstable ones
+```
 
-# Run with verbose output
-pytest -v
+**Test Categories:**
+- **Core Tests** (`make test`): Stable functionality tests including services, authentication, and all agents (143 tests)
+- **API Tests** (`make test-api`): Endpoint and system tests that may require environment setup (67 tests)
+- **All Tests** (`make test-all`): Everything including potentially unstable tests (210+ tests)
 
-# Run specific test modules
-pytest tests/unittests/agents/
+#### Direct Commands
+```bash
+# From src directory
+cd src
+uv run python scripts/run_tests.py          # Core tests (default)
+uv run python scripts/run_tests.py --api    # API tests only
+uv run python scripts/run_tests.py --all    # All tests
+uv run python scripts/run_tests.py --help   # Show test runner help
+
+# Raw pytest (not recommended - use run_tests.py instead)
+cd src
+uv run pytest tests/ -v                     # All tests with verbose output
+uv run pytest tests/unittests/agents/       # Specific test modules
 ```
 
 ### Code Quality
 ```bash
-# Lint and fix issues
-ruff check --fix
+# From src directory
+cd src
+uv run ruff check --fix
+uv run ruff format .
 
-# Format code
-ruff format
+# Or use Makefile from project root
+make lint
+make format
 ```
 
 ### Adding Dependencies
 ```bash
-# Add runtime dependency
+# From src directory
+cd src
 uv add package-name
 
 # Add development dependency
+cd src
 uv add --dev package-name
+```
+
+### Quick Commands (Makefile)
+
+```bash
+# From project root - these commands handle directory changes automatically
+
+# Help and Information
+make                # Show all available commands (same as 'make help')
+
+# Testing (choose based on your needs)
+make test           # Run core tests (recommended for development)
+make test-core      # Run core tests (same as above, explicit)
+make test-api       # Run API and system tests (may need setup)
+make test-all       # Run all tests including potentially unstable ones
+
+# Code Quality
+make lint           # Run code linting
+make format         # Format code
+make typecheck      # Run type checking (if mypy is configured)
+
+# Services
+make backend        # Start backend API server
+make frontend       # Start frontend development server
+make all            # Start both backend and frontend
+
+# Dependencies and Cleanup
+make install        # Install all dependencies (backend + frontend)
+make install-backend # Install backend dependencies only
+make install-frontend # Install frontend dependencies only
+make clean          # Clean build artifacts and dependencies
 ```
 
 ## Configuration
@@ -189,8 +281,17 @@ This project is licensed under the GNU Affero General Public License v3.0 - see 
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
-4. Run tests and linting
-5. Submit a pull request
+4. Run tests and linting:
+   ```bash
+   make test          # Run core tests
+   make lint          # Check code style
+   make format        # Format code
+   ```
+5. For comprehensive testing before submitting:
+   ```bash
+   make test-all      # Run all tests
+   ```
+6. Submit a pull request
 
 ## Support
 

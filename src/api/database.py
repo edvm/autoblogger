@@ -16,7 +16,10 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+import enum
+import hashlib
 import os
+import secrets
 from collections.abc import Generator
 from datetime import datetime
 from typing import Any
@@ -25,6 +28,7 @@ from sqlalchemy import (
     Boolean,
     Column,
     DateTime,
+    Enum,
     ForeignKey,
     Integer,
     String,
@@ -35,6 +39,14 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session, relationship, sessionmaker
 
 """Database configuration and models for AutoBlogger API."""
+
+
+class AuthType(enum.Enum):
+    """Authentication type enumeration."""
+
+    CLERK = "clerk"
+    SYSTEM = "system"
+
 
 # Database URL - SQLite for development
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./autoblogger.db")
@@ -58,7 +70,13 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
-    clerk_user_id = Column(String, unique=True, index=True, nullable=False)
+    auth_type = Column(Enum(AuthType), default=AuthType.CLERK, nullable=False)
+    clerk_user_id = Column(
+        String, unique=True, index=True, nullable=True
+    )  # Only for Clerk users
+    system_user_id = Column(
+        Integer, ForeignKey("system_users.id"), nullable=True
+    )  # Only for system users
     email = Column(String, unique=True, index=True, nullable=False)
     username = Column(String, unique=True, index=True, nullable=True)
     first_name = Column(String, nullable=True)
@@ -71,6 +89,7 @@ class User(Base):
     # Relationships
     credit_transactions = relationship("CreditTransaction", back_populates="user")
     app_usages = relationship("AppUsage", back_populates="user")
+    system_user = relationship("SystemUser", back_populates="user")
 
 
 class CreditTransaction(Base):
@@ -114,6 +133,93 @@ class AppUsage(Base):
     user = relationship("User", back_populates="app_usages")
 
 
+class SystemUser(Base):
+    """System user model for native authentication."""
+
+    __tablename__ = "system_users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True, nullable=False)
+    email = Column(String, unique=True, index=True, nullable=False)
+    password_hash = Column(String, nullable=False)
+    first_name = Column(String, nullable=True)
+    last_name = Column(String, nullable=True)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationships
+    api_keys = relationship("ApiKey", back_populates="system_user")
+    user = relationship("User", back_populates="system_user", uselist=False)
+
+    def set_password(self, password: str):
+        """Set password with hashing."""
+        import bcrypt
+
+        self.password_hash = bcrypt.hashpw(
+            password.encode("utf-8"), bcrypt.gensalt()
+        ).decode("utf-8")
+
+    def verify_password(self, password: str) -> bool:
+        """Verify password against hash."""
+        import bcrypt
+
+        return bcrypt.checkpw(
+            password.encode("utf-8"), self.password_hash.encode("utf-8")
+        )
+
+
+class ApiKey(Base):
+    """API key model for system authentication."""
+
+    __tablename__ = "api_keys"
+
+    id = Column(Integer, primary_key=True, index=True)
+    system_user_id = Column(Integer, ForeignKey("system_users.id"), nullable=False)
+    name = Column(String, nullable=False)  # User-defined name for the key
+    key_hash = Column(String, unique=True, index=True, nullable=False)  # Hashed API key
+    key_prefix = Column(String, nullable=False)  # First 8 chars for identification
+    is_active = Column(Boolean, default=True)
+    last_used_at = Column(DateTime, nullable=True)
+    expires_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationships
+    system_user = relationship("SystemUser", back_populates="api_keys")
+
+    @staticmethod
+    def generate_key() -> tuple[str, str]:
+        """Generate a new API key and return (full_key, key_hash)."""
+        # Generate secure random key
+        key = secrets.token_urlsafe(32)
+        full_key = f"abk_live_{key}"
+
+        # Create hash for storage
+        key_hash = hashlib.sha256(full_key.encode()).hexdigest()
+
+        return full_key, key_hash
+
+    @staticmethod
+    def hash_key(key: str) -> str:
+        """Hash an API key for storage/comparison."""
+        return hashlib.sha256(key.encode()).hexdigest()
+
+    def get_prefix(self) -> str:
+        """Get the key prefix for display."""
+        return self.key_prefix
+
+    def is_expired(self) -> bool:
+        """Check if the API key is expired."""
+        if self.expires_at is None:
+            return False
+        return datetime.utcnow() > self.expires_at
+
+    def update_last_used(self):
+        """Update the last used timestamp."""
+        self.last_used_at = datetime.utcnow()
+
+
 # Create tables
 def create_tables():
     """Create all database tables."""
@@ -121,7 +227,7 @@ def create_tables():
 
 
 # Dependency to get database session
-def get_db() -> Generator[Any, Any, Session]:
+def get_db() -> Generator[Any, Any, Session] | None:
     """Get database session dependency."""
     db = SessionLocal()
     try:
