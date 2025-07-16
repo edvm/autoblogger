@@ -227,7 +227,7 @@ def create_tables():
 
 
 # Dependency to get database session
-def get_db() -> Generator[Any, Any, Session]:
+def get_db() -> Generator[Any, Any, Session] | None:
     """Get database session dependency."""
     db = SessionLocal()
     try:

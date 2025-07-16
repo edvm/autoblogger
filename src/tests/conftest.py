@@ -29,7 +29,7 @@ from agents.writing_agent import WritingAgent
 from api.auth_strategies import AuthResult, AuthStrategyManager
 
 # Removed ClerkUser as it's no longer in api.auth
-from api.database import ApiKey, AuthType, SystemUser, User
+from api.database import AuthType, User
 from core.llm_services import LLMService, LLMServiceResponse, LLMUsage
 from core.state import WokflowType, WorkflowState
 from tools.search import SearchConfig, SearchDepth, SearchTopic, TimeRange
@@ -338,8 +338,6 @@ def blogger_manager_agent(mock_research_agent, mock_writing_agent, mock_editor_a
 
 
 # Test Authentication Utilities
-
-
 def create_mock_user(
     id: int = 1,
     user_id: int = None,  # Keep for backward compatibility
