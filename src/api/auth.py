@@ -39,11 +39,13 @@ async def get_current_user(
     db: Session = Depends(get_db),
 ) -> User:
     """Get current authenticated user using any supported authentication method."""
-    
+
     auth_result = await auth_manager.authenticate(request, db)
-    
-    logger.info(f"User authenticated via {auth_result.auth_type.value}: {auth_result.user.email}")
-    
+
+    logger.info(
+        f"User authenticated via {auth_result.auth_type.value}: {auth_result.user.email}"
+    )
+
     return auth_result.user
 
 

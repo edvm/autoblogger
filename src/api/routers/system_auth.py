@@ -36,6 +36,7 @@ router = APIRouter()
 # Pydantic models
 class SystemUserCreate(BaseModel):
     """System user creation model."""
+
     username: str = Field(..., min_length=3, max_length=50)
     email: EmailStr
     password: str = Field(..., min_length=8, max_length=100)
@@ -45,12 +46,14 @@ class SystemUserCreate(BaseModel):
 
 class SystemUserLogin(BaseModel):
     """System user login model."""
+
     username: str
     password: str
 
 
 class SystemUserResponse(BaseModel):
     """System user response model."""
+
     id: int
     username: str
     email: str
@@ -66,12 +69,14 @@ class SystemUserResponse(BaseModel):
 
 class ApiKeyCreate(BaseModel):
     """API key creation model."""
+
     name: str = Field(..., min_length=1, max_length=100)
     expires_at: Optional[datetime] = None
 
 
 class ApiKeyResponse(BaseModel):
     """API key response model."""
+
     id: int
     name: str
     key_prefix: str
@@ -87,6 +92,7 @@ class ApiKeyResponse(BaseModel):
 
 class ApiKeyCreatedResponse(BaseModel):
     """API key created response model with full key."""
+
     id: int
     name: str
     key_prefix: str
@@ -101,6 +107,7 @@ class ApiKeyCreatedResponse(BaseModel):
 
 class LoginResponse(BaseModel):
     """Login response model."""
+
     user: SystemUserResponse
     api_key: ApiKeyCreatedResponse
 
@@ -112,27 +119,25 @@ async def register_system_user(
 ):
     """Register a new system user."""
     # Check if username already exists
-    existing_user = db.query(SystemUser).filter(
-        SystemUser.username == user_data.username
-    ).first()
-    
+    existing_user = (
+        db.query(SystemUser).filter(SystemUser.username == user_data.username).first()
+    )
+
     if existing_user:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Username already exists"
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Username already exists"
         )
-    
+
     # Check if email already exists
-    existing_email = db.query(SystemUser).filter(
-        SystemUser.email == user_data.email
-    ).first()
-    
+    existing_email = (
+        db.query(SystemUser).filter(SystemUser.email == user_data.email).first()
+    )
+
     if existing_email:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email already exists"
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Email already exists"
         )
-    
+
     # Create new system user
     system_user = SystemUser(
         username=user_data.username,
@@ -140,15 +145,15 @@ async def register_system_user(
         first_name=user_data.first_name,
         last_name=user_data.last_name,
     )
-    
+
     system_user.set_password(user_data.password)
-    
+
     db.add(system_user)
     db.commit()
     db.refresh(system_user)
-    
+
     logger.info(f"Created new system user: {user_data.username}")
-    
+
     return system_user
 
 
@@ -159,32 +164,31 @@ async def login_system_user(
 ):
     """Login system user and return an API key."""
     # Find user by username
-    system_user = db.query(SystemUser).filter(
-        SystemUser.username == login_data.username
-    ).first()
-    
+    system_user = (
+        db.query(SystemUser).filter(SystemUser.username == login_data.username).first()
+    )
+
     if not system_user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid username or password"
+            detail="Invalid username or password",
         )
-    
+
     # Verify password
     if not system_user.verify_password(login_data.password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid username or password"
+            detail="Invalid username or password",
         )
-    
+
     if not system_user.is_active:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="User account is inactive"
+            status_code=status.HTTP_400_BAD_REQUEST, detail="User account is inactive"
         )
-    
+
     # Create a new API key for this login
     full_key, key_hash = ApiKey.generate_key()
-    
+
     api_key = ApiKey(
         system_user_id=system_user.id,
         name=f"Login key - {datetime.utcnow().strftime('%Y-%m-%d %H:%M')}",
@@ -192,13 +196,13 @@ async def login_system_user(
         key_prefix=full_key[:12],  # Store first 12 characters for display
         expires_at=datetime.utcnow() + timedelta(days=365),  # 1 year expiration
     )
-    
+
     db.add(api_key)
     db.commit()
     db.refresh(api_key)
-    
+
     logger.info(f"System user logged in: {system_user.username}")
-    
+
     return LoginResponse(
         user=SystemUserResponse(
             id=system_user.id,
@@ -218,7 +222,7 @@ async def login_system_user(
             is_active=api_key.is_active,
             expires_at=api_key.expires_at,
             created_at=api_key.created_at,
-        )
+        ),
     )
 
 
@@ -231,13 +235,16 @@ async def list_api_keys(
     if current_user.auth_type != AuthType.SYSTEM:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only system users can manage API keys"
+            detail="Only system users can manage API keys",
         )
-    
-    api_keys = db.query(ApiKey).filter(
-        ApiKey.system_user_id == current_user.system_user_id
-    ).order_by(ApiKey.created_at.desc()).all()
-    
+
+    api_keys = (
+        db.query(ApiKey)
+        .filter(ApiKey.system_user_id == current_user.system_user_id)
+        .order_by(ApiKey.created_at.desc())
+        .all()
+    )
+
     return api_keys
 
 
@@ -251,24 +258,28 @@ async def create_api_key(
     if current_user.auth_type != AuthType.SYSTEM:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only system users can create API keys"
+            detail="Only system users can create API keys",
         )
-    
+
     # Check if name already exists for this user
-    existing_key = db.query(ApiKey).filter(
-        ApiKey.system_user_id == current_user.system_user_id,
-        ApiKey.name == key_data.name
-    ).first()
-    
+    existing_key = (
+        db.query(ApiKey)
+        .filter(
+            ApiKey.system_user_id == current_user.system_user_id,
+            ApiKey.name == key_data.name,
+        )
+        .first()
+    )
+
     if existing_key:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="API key with this name already exists"
+            detail="API key with this name already exists",
         )
-    
+
     # Generate new API key
     full_key, key_hash = ApiKey.generate_key()
-    
+
     api_key = ApiKey(
         system_user_id=current_user.system_user_id,
         name=key_data.name,
@@ -276,13 +287,13 @@ async def create_api_key(
         key_prefix=full_key[:12],  # Store first 12 characters for display
         expires_at=key_data.expires_at,
     )
-    
+
     db.add(api_key)
     db.commit()
     db.refresh(api_key)
-    
+
     logger.info(f"Created new API key '{key_data.name}' for user {current_user.email}")
-    
+
     return ApiKeyCreatedResponse(
         id=api_key.id,
         name=api_key.name,
@@ -305,45 +316,51 @@ async def update_api_key(
     if current_user.auth_type != AuthType.SYSTEM:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only system users can update API keys"
+            detail="Only system users can update API keys",
         )
-    
+
     # Find the API key
-    api_key = db.query(ApiKey).filter(
-        ApiKey.id == key_id,
-        ApiKey.system_user_id == current_user.system_user_id
-    ).first()
-    
+    api_key = (
+        db.query(ApiKey)
+        .filter(
+            ApiKey.id == key_id, ApiKey.system_user_id == current_user.system_user_id
+        )
+        .first()
+    )
+
     if not api_key:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="API key not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="API key not found"
         )
-    
+
     # Check if new name conflicts with existing keys
     if key_data.name != api_key.name:
-        existing_key = db.query(ApiKey).filter(
-            ApiKey.system_user_id == current_user.system_user_id,
-            ApiKey.name == key_data.name,
-            ApiKey.id != key_id
-        ).first()
-        
+        existing_key = (
+            db.query(ApiKey)
+            .filter(
+                ApiKey.system_user_id == current_user.system_user_id,
+                ApiKey.name == key_data.name,
+                ApiKey.id != key_id,
+            )
+            .first()
+        )
+
         if existing_key:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="API key with this name already exists"
+                detail="API key with this name already exists",
             )
-    
+
     # Update the key
     api_key.name = key_data.name
     api_key.expires_at = key_data.expires_at
     api_key.updated_at = datetime.utcnow()
-    
+
     db.commit()
     db.refresh(api_key)
-    
+
     logger.info(f"Updated API key '{api_key.name}' for user {current_user.email}")
-    
+
     return api_key
 
 
@@ -357,29 +374,31 @@ async def revoke_api_key(
     if current_user.auth_type != AuthType.SYSTEM:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only system users can revoke API keys"
+            detail="Only system users can revoke API keys",
         )
-    
+
     # Find the API key
-    api_key = db.query(ApiKey).filter(
-        ApiKey.id == key_id,
-        ApiKey.system_user_id == current_user.system_user_id
-    ).first()
-    
+    api_key = (
+        db.query(ApiKey)
+        .filter(
+            ApiKey.id == key_id, ApiKey.system_user_id == current_user.system_user_id
+        )
+        .first()
+    )
+
     if not api_key:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="API key not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="API key not found"
         )
-    
+
     # Deactivate the key
     api_key.is_active = False
     api_key.updated_at = datetime.utcnow()
-    
+
     db.commit()
-    
+
     logger.info(f"Revoked API key '{api_key.name}' for user {current_user.email}")
-    
+
     return {"message": "API key revoked successfully"}
 
 
@@ -392,17 +411,18 @@ async def get_current_system_user(
     if current_user.auth_type != AuthType.SYSTEM:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only system users can access this endpoint"
+            detail="Only system users can access this endpoint",
         )
-    
-    system_user = db.query(SystemUser).filter(
-        SystemUser.id == current_user.system_user_id
-    ).first()
-    
+
+    system_user = (
+        db.query(SystemUser)
+        .filter(SystemUser.id == current_user.system_user_id)
+        .first()
+    )
+
     if not system_user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="System user not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="System user not found"
         )
-    
+
     return system_user

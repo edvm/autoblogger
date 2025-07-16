@@ -24,9 +24,9 @@ class TestSystemUser:
             email="test@example.com",
             first_name="Test",
             last_name="User",
-            is_active=True
+            is_active=True,
         )
-        
+
         assert user.username == "testuser"
         assert user.email == "test@example.com"
         assert user.first_name == "Test"
@@ -40,9 +40,9 @@ class TestSystemUser:
         """Test password hashing functionality."""
         user = SystemUser(username="testuser", email="test@example.com")
         password = "testpassword123"
-        
+
         user.set_password(password)
-        
+
         assert user.password_hash is not None
         assert user.password_hash != password  # Should be hashed
         assert user.password_hash.startswith("$2b$")  # bcrypt format
@@ -52,7 +52,7 @@ class TestSystemUser:
         user = SystemUser(username="testuser", email="test@example.com")
         password = "testpassword123"
         user.set_password(password)
-        
+
         assert user.verify_password(password) is True
 
     def test_verify_password_failure(self):
@@ -60,14 +60,14 @@ class TestSystemUser:
         user = SystemUser(username="testuser", email="test@example.com")
         password = "testpassword123"
         user.set_password(password)
-        
+
         assert user.verify_password("wrongpassword") is False
 
     def test_verify_password_empty(self):
         """Test password verification with empty password."""
         user = SystemUser(username="testuser", email="test@example.com")
         user.set_password("testpassword123")
-        
+
         assert user.verify_password("") is False
 
     def test_password_hashing_different_salts(self):
@@ -75,17 +75,17 @@ class TestSystemUser:
         user1 = SystemUser(username="user1", email="user1@example.com")
         user2 = SystemUser(username="user2", email="user2@example.com")
         password = "samepassword123"
-        
+
         user1.set_password(password)
         user2.set_password(password)
-        
+
         assert user1.password_hash != user2.password_hash
 
     def test_unicode_password_handling(self):
         """Test handling of unicode characters in passwords."""
         user = SystemUser(username="testuser", email="test@example.com")
         password = "pássword123🔐"
-        
+
         user.set_password(password)
         assert user.verify_password(password) is True
         assert user.verify_password("password123") is False
@@ -101,9 +101,9 @@ class TestApiKey:
             name="Test Key",
             key_hash="test_hash",
             key_prefix="abk_live_test",
-            is_active=True
+            is_active=True,
         )
-        
+
         assert key.system_user_id == 1
         assert key.name == "Test Key"
         assert key.key_hash == "test_hash"
@@ -115,7 +115,7 @@ class TestApiKey:
     def test_generate_key(self):
         """Test API key generation."""
         full_key, key_hash = ApiKey.generate_key()
-        
+
         assert full_key.startswith("abk_live_")
         assert len(full_key) == 52  # abk_live_ (9) + 43 chars
         assert key_hash != full_key  # Should be hashed
@@ -125,7 +125,7 @@ class TestApiKey:
         """Test that generated keys are unique."""
         key1, hash1 = ApiKey.generate_key()
         key2, hash2 = ApiKey.generate_key()
-        
+
         assert key1 != key2
         assert hash1 != hash2
 
@@ -133,7 +133,7 @@ class TestApiKey:
         """Test API key hashing."""
         key = "abk_live_test_key_123"
         hashed = ApiKey.hash_key(key)
-        
+
         # Should match manual SHA-256 hash
         expected_hash = hashlib.sha256(key.encode()).hexdigest()
         assert hashed == expected_hash
@@ -143,7 +143,7 @@ class TestApiKey:
         key = "abk_live_test_key_123"
         hash1 = ApiKey.hash_key(key)
         hash2 = ApiKey.hash_key(key)
-        
+
         assert hash1 == hash2
 
     def test_get_prefix(self):
@@ -153,9 +153,9 @@ class TestApiKey:
             name="Test Key",
             key_hash="test_hash",
             key_prefix="abk_live_test",
-            is_active=True
+            is_active=True,
         )
-        
+
         assert key.get_prefix() == "abk_live_test"
 
     def test_is_expired_no_expiration(self):
@@ -166,9 +166,9 @@ class TestApiKey:
             key_hash="test_hash",
             key_prefix="abk_live_test",
             is_active=True,
-            expires_at=None
+            expires_at=None,
         )
-        
+
         assert key.is_expired() is False
 
     def test_is_expired_future_expiration(self):
@@ -180,9 +180,9 @@ class TestApiKey:
             key_hash="test_hash",
             key_prefix="abk_live_test",
             is_active=True,
-            expires_at=future_date
+            expires_at=future_date,
         )
-        
+
         assert key.is_expired() is False
 
     def test_is_expired_past_expiration(self):
@@ -194,9 +194,9 @@ class TestApiKey:
             key_hash="test_hash",
             key_prefix="abk_live_test",
             is_active=True,
-            expires_at=past_date
+            expires_at=past_date,
         )
-        
+
         assert key.is_expired() is True
 
     def test_update_last_used(self):
@@ -206,15 +206,15 @@ class TestApiKey:
             name="Test Key",
             key_hash="test_hash",
             key_prefix="abk_live_test",
-            is_active=True
+            is_active=True,
         )
-        
+
         assert key.last_used_at is None
-        
+
         before_update = datetime.utcnow()
         key.update_last_used()
         after_update = datetime.utcnow()
-        
+
         assert key.last_used_at is not None
         assert before_update <= key.last_used_at <= after_update
 
@@ -232,9 +232,9 @@ class TestUser:
             first_name="Test",
             last_name="User",
             credits=100,
-            is_active=True
+            is_active=True,
         )
-        
+
         assert user.auth_type == AuthType.SYSTEM
         assert user.system_user_id == 1
         assert user.clerk_user_id is None
@@ -253,9 +253,9 @@ class TestUser:
             first_name="Clerk",
             last_name="User",
             credits=100,
-            is_active=True
+            is_active=True,
         )
-        
+
         assert user.auth_type == AuthType.CLERK
         assert user.clerk_user_id == "clerk_user_123"
         assert user.system_user_id is None
@@ -267,31 +267,25 @@ class TestUser:
     def test_user_default_auth_type(self):
         """Test that default auth type is CLERK for backward compatibility."""
         user = User(
-            clerk_user_id="clerk_user_123",
-            email="test@example.com",
-            credits=100
+            clerk_user_id="clerk_user_123", email="test@example.com", credits=100
         )
-        
+
         assert user.auth_type == AuthType.CLERK
 
     def test_user_default_credits(self):
         """Test that default credits are set correctly."""
         user = User(
-            auth_type=AuthType.SYSTEM,
-            system_user_id=1,
-            email="test@example.com"
+            auth_type=AuthType.SYSTEM, system_user_id=1, email="test@example.com"
         )
-        
+
         assert user.credits == 100
 
     def test_user_default_active_status(self):
         """Test that default active status is True."""
         user = User(
-            auth_type=AuthType.SYSTEM,
-            system_user_id=1,
-            email="test@example.com"
+            auth_type=AuthType.SYSTEM, system_user_id=1, email="test@example.com"
         )
-        
+
         assert user.is_active is True
 
 
@@ -325,13 +319,13 @@ class TestModelIntegration:
             username="testuser",
             email="test@example.com",
             first_name="Test",
-            last_name="User"
+            last_name="User",
         )
         system_user.set_password("testpassword123")
-        
+
         test_database_session.add(system_user)
         test_database_session.commit()
-        
+
         # Create API key
         full_key, key_hash = ApiKey.generate_key()
         api_key = ApiKey(
@@ -339,12 +333,12 @@ class TestModelIntegration:
             name="Test Key",
             key_hash=key_hash,
             key_prefix=full_key[:12],
-            is_active=True
+            is_active=True,
         )
-        
+
         test_database_session.add(api_key)
         test_database_session.commit()
-        
+
         # Test relationship
         assert len(system_user.api_keys) == 1
         assert system_user.api_keys[0].name == "Test Key"
@@ -357,25 +351,25 @@ class TestModelIntegration:
             username="testuser",
             email="test@example.com",
             first_name="Test",
-            last_name="User"
+            last_name="User",
         )
         system_user.set_password("testpassword123")
-        
+
         test_database_session.add(system_user)
         test_database_session.commit()
-        
+
         # Create user
         user = User(
             auth_type=AuthType.SYSTEM,
             system_user_id=system_user.id,
             email="test@example.com",
             username="testuser",
-            credits=100
+            credits=100,
         )
-        
+
         test_database_session.add(user)
         test_database_session.commit()
-        
+
         # Test relationship
         assert system_user.user is not None
         assert system_user.user.username == "testuser"
@@ -384,24 +378,21 @@ class TestModelIntegration:
     def test_unique_constraints(self, test_database_session):
         """Test unique constraints on models."""
         # Create first system user
-        system_user1 = SystemUser(
-            username="testuser",
-            email="test@example.com"
-        )
+        system_user1 = SystemUser(username="testuser", email="test@example.com")
         system_user1.set_password("password123")
-        
+
         test_database_session.add(system_user1)
         test_database_session.commit()
-        
+
         # Try to create second system user with same username
         system_user2 = SystemUser(
             username="testuser",  # Same username
-            email="different@example.com"
+            email="different@example.com",
         )
         system_user2.set_password("password123")
-        
+
         test_database_session.add(system_user2)
-        
+
         # Should raise integrity error
         with pytest.raises(Exception):  # SQLAlchemy IntegrityError
             test_database_session.commit()
@@ -409,29 +400,26 @@ class TestModelIntegration:
     def test_cascade_operations(self, test_database_session):
         """Test cascade operations between related models."""
         # Create system user with API key
-        system_user = SystemUser(
-            username="testuser",
-            email="test@example.com"
-        )
+        system_user = SystemUser(username="testuser", email="test@example.com")
         system_user.set_password("password123")
-        
+
         test_database_session.add(system_user)
         test_database_session.commit()
-        
+
         # Create API key
         full_key, key_hash = ApiKey.generate_key()
         api_key = ApiKey(
             system_user_id=system_user.id,
             name="Test Key",
             key_hash=key_hash,
-            key_prefix=full_key[:12]
+            key_prefix=full_key[:12],
         )
-        
+
         test_database_session.add(api_key)
         test_database_session.commit()
-        
+
         # Verify relationship exists
         assert len(system_user.api_keys) == 1
-        
+
         # Delete system user should handle API key appropriately
         # (Depends on cascade configuration - test behavior matches setup)

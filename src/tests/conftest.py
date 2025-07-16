@@ -26,6 +26,7 @@ from agents.editor_agent import EditorAgent
 from agents.manager_agent import BloggerManagerAgent
 from agents.research_agent import ResearchAgent
 from agents.writing_agent import WritingAgent
+
 # Removed ClerkUser as it's no longer in api.auth
 from api.database import User, SystemUser, ApiKey, AuthType
 from api.auth_strategies import AuthResult, AuthStrategyManager
@@ -459,22 +460,23 @@ def authenticated_client_with_custom_user():
 
 # New Authentication Test Fixtures
 
+
 @pytest.fixture
 def test_database_session():
     """Fixture providing an in-memory test database session."""
     from sqlalchemy import create_engine
     from sqlalchemy.orm import sessionmaker
     from api.database import Base
-    
+
     # Create in-memory SQLite database for testing
     engine = create_engine("sqlite:///:memory:")
     Base.metadata.create_all(engine)
-    
+
     TestSession = sessionmaker(bind=engine)
     session = TestSession()
-    
+
     yield session
-    
+
     session.close()
 
 
@@ -482,6 +484,7 @@ def test_database_session():
 def system_user_factory():
     """Fixture providing SystemUser factory."""
     from tests.utils.auth_test_utils import SystemUserFactory
+
     return SystemUserFactory
 
 
@@ -489,6 +492,7 @@ def system_user_factory():
 def api_key_factory():
     """Fixture providing ApiKey factory."""
     from tests.utils.auth_test_utils import ApiKeyFactory
+
     return ApiKeyFactory
 
 
@@ -496,6 +500,7 @@ def api_key_factory():
 def user_factory():
     """Fixture providing User factory."""
     from tests.utils.auth_test_utils import UserFactory
+
     return UserFactory
 
 
@@ -503,6 +508,7 @@ def user_factory():
 def auth_test_data():
     """Fixture providing authentication test data."""
     from tests.utils.auth_test_utils import AuthTestData
+
     return AuthTestData
 
 
@@ -510,6 +516,7 @@ def auth_test_data():
 def auth_test_helpers():
     """Fixture providing authentication test helpers."""
     from tests.utils.auth_test_utils import AuthTestHelpers
+
     return AuthTestHelpers
 
 
@@ -517,6 +524,7 @@ def auth_test_helpers():
 def mock_system_user():
     """Fixture providing a mock system user."""
     from tests.utils.auth_test_utils import SystemUserFactory
+
     return SystemUserFactory.create_mock_system_user()
 
 
@@ -524,6 +532,7 @@ def mock_system_user():
 def mock_api_key():
     """Fixture providing a mock API key."""
     from tests.utils.auth_test_utils import ApiKeyFactory
+
     return ApiKeyFactory.create_mock_api_key()
 
 
@@ -531,6 +540,7 @@ def mock_api_key():
 def mock_system_auth_user():
     """Fixture providing a mock User with system authentication."""
     from tests.utils.auth_test_utils import UserFactory
+
     return UserFactory.create_mock_user(auth_type=AuthType.SYSTEM)
 
 
@@ -538,10 +548,9 @@ def mock_system_auth_user():
 def mock_clerk_auth_user():
     """Fixture providing a mock User with Clerk authentication."""
     from tests.utils.auth_test_utils import UserFactory
+
     return UserFactory.create_mock_user(
-        auth_type=AuthType.CLERK,
-        clerk_user_id="clerk_user_123",
-        system_user_id=None
+        auth_type=AuthType.CLERK, clerk_user_id="clerk_user_123", system_user_id=None
     )
 
 
@@ -549,6 +558,7 @@ def mock_clerk_auth_user():
 def test_api_key_pair():
     """Fixture providing a test API key and its hash."""
     from tests.utils.auth_test_utils import ApiKeyFactory
+
     return ApiKeyFactory.generate_test_api_key()
 
 
@@ -560,24 +570,24 @@ def authenticated_api_key_client():
     from api.main import app
     from fastapi.testclient import TestClient
     from tests.utils.auth_test_utils import UserFactory
-    
+
     # Create a system user for testing
     test_user = UserFactory.create_mock_user(auth_type=AuthType.SYSTEM)
-    
+
     # Override dependencies
     def get_current_user_override():
         return test_user
-    
+
     def get_db_override():
         return Mock()
-    
+
     app.dependency_overrides[get_current_user] = get_current_user_override
     app.dependency_overrides[get_db] = get_db_override
-    
+
     client = TestClient(app)
-    
+
     yield client
-    
+
     # Clean up
     app.dependency_overrides.clear()
 
@@ -590,28 +600,26 @@ def authenticated_clerk_client():
     from api.main import app
     from fastapi.testclient import TestClient
     from tests.utils.auth_test_utils import UserFactory
-    
+
     # Create a Clerk user for testing
     test_user = UserFactory.create_mock_user(
-        auth_type=AuthType.CLERK,
-        clerk_user_id="clerk_user_123",
-        system_user_id=None
+        auth_type=AuthType.CLERK, clerk_user_id="clerk_user_123", system_user_id=None
     )
-    
+
     # Override dependencies
     def get_current_user_override():
         return test_user
-    
+
     def get_db_override():
         return Mock()
-    
+
     app.dependency_overrides[get_current_user] = get_current_user_override
     app.dependency_overrides[get_db] = get_db_override
-    
+
     client = TestClient(app)
-    
+
     yield client
-    
+
     # Clean up
     app.dependency_overrides.clear()
 
@@ -620,15 +628,15 @@ def authenticated_clerk_client():
 def mock_auth_strategy_manager():
     """Fixture providing a mock AuthStrategyManager."""
     from tests.utils.auth_test_utils import UserFactory
-    
+
     mock_manager = Mock(spec=AuthStrategyManager)
-    
+
     # Default successful authentication
     mock_auth_result = AuthResult(
         user=UserFactory.create_mock_user(),
         auth_type=AuthType.SYSTEM,
-        metadata={"api_key_id": 1}
+        metadata={"api_key_id": 1},
     )
     mock_manager.authenticate = Mock(return_value=mock_auth_result)
-    
+
     return mock_manager

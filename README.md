@@ -27,18 +27,23 @@ AutoBlogger is a content generation platform that uses a multi-agent architectur
 
 1. Install dependencies using uv (recommended):
 ```bash
+# From the project root
+cd src
 uv sync
 ```
 
 Or with pip:
 ```bash
+cd src
 pip install -r requirements.txt
 ```
 
 2. Create environment file:
 ```bash
-# Create .env file in the backend directory
+# Create .env file in the src directory (if it doesn't exist)
+cd src
 touch .env
+# Then edit src/.env with your API keys (see Configuration section below)
 ```
 
 3. Configure your API keys and LLM provider in `.env`:
@@ -63,20 +68,52 @@ TAVILY_API_KEY=your_tavily_key_here
 
 #### CLI Mode
 ```bash
-# Direct execution
+# From the src directory
+cd src
 python cli.py "Your Topic Here"
 
 # Using uv (recommended)
+cd src
 uv run python cli.py "Your Topic"
 ```
 
 #### API Mode
 ```bash
-# Start the API server
+# From the src directory
+cd src
 uvicorn api.main:app --reload
 
 # Or using the provided script
-python run_api.py
+cd src
+python scripts/run_api.py
+
+# Or from project root using Makefile
+make backend
+
+# Or using the quick start script (recommended for development)
+./start.sh
+```
+
+## Project Structure
+
+```
+autoblogger/
+├── src/                     # Main source code directory
+│   ├── agents/             # Multi-agent system
+│   ├── api/                # FastAPI application
+│   ├── apps/               # Application modules
+│   ├── core/               # Core services
+│   ├── tools/              # Utility tools
+│   ├── configs/            # Configuration files
+│   ├── scripts/            # Utility scripts
+│   ├── tests/              # Test suite
+│   ├── cli.py              # Command-line interface
+│   └── pyproject.toml      # Python dependencies
+├── frontend/               # Next.js frontend (separate)
+├── docs/                   # Documentation
+├── Makefile               # Build automation
+├── start.sh               # Quick start script
+└── README.md              # This file
 ```
 
 ## Architecture
@@ -111,32 +148,55 @@ python run_api.py
 
 ### Testing
 ```bash
-# Run all tests
-pytest
+# From src directory
+cd src
+uv run pytest tests/
 
 # Run with verbose output
-pytest -v
+cd src
+uv run pytest tests/ -v
 
 # Run specific test modules
-pytest tests/unittests/agents/
+cd src
+uv run pytest tests/unittests/agents/
+
+# Or use Makefile from project root
+make test
 ```
 
 ### Code Quality
 ```bash
-# Lint and fix issues
-ruff check --fix
+# From src directory
+cd src
+uv run ruff check --fix
+uv run ruff format .
 
-# Format code
-ruff format
+# Or use Makefile from project root
+make lint
+make format
 ```
 
 ### Adding Dependencies
 ```bash
-# Add runtime dependency
+# From src directory
+cd src
 uv add package-name
 
 # Add development dependency
+cd src
 uv add --dev package-name
+```
+
+### Quick Commands (Makefile)
+
+```bash
+# From project root - these commands handle directory changes automatically
+make                # Show all available commands (same as 'make help')
+make backend        # Start backend API server
+make test           # Run all tests
+make lint           # Run code linting
+make format         # Format code
+make clean          # Clean build artifacts
 ```
 
 ## Configuration

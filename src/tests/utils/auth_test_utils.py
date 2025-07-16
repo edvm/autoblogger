@@ -13,7 +13,7 @@ from api.database import SystemUser, ApiKey, User, AuthType
 
 class SystemUserFactory:
     """Factory for creating test SystemUser objects."""
-    
+
     @staticmethod
     def create_system_user(
         id: int = 1,
@@ -23,7 +23,7 @@ class SystemUserFactory:
         first_name: str = "Test",
         last_name: str = "User",
         is_active: bool = True,
-        **kwargs
+        **kwargs,
     ) -> SystemUser:
         """Create a SystemUser for testing."""
         system_user = SystemUser(
@@ -33,7 +33,7 @@ class SystemUserFactory:
             first_name=first_name,
             last_name=last_name,
             is_active=is_active,
-            **kwargs
+            **kwargs,
         )
         system_user.set_password(password)
         return system_user
@@ -47,7 +47,7 @@ class SystemUserFactory:
         first_name: str = "Test",
         last_name: str = "User",
         is_active: bool = True,
-        **kwargs
+        **kwargs,
     ) -> Mock:
         """Create a mock SystemUser for testing."""
         mock_user = Mock(spec=SystemUser)
@@ -60,21 +60,21 @@ class SystemUserFactory:
         mock_user.is_active = is_active
         mock_user.created_at = datetime.utcnow()
         mock_user.updated_at = datetime.utcnow()
-        
+
         # Mock methods
         mock_user.set_password = Mock()
         mock_user.verify_password = Mock(return_value=True)
-        
+
         # Apply any additional kwargs
         for key, value in kwargs.items():
             setattr(mock_user, key, value)
-        
+
         return mock_user
 
 
 class ApiKeyFactory:
     """Factory for creating test ApiKey objects."""
-    
+
     @staticmethod
     def create_api_key(
         id: int = 1,
@@ -85,7 +85,7 @@ class ApiKeyFactory:
         is_active: bool = True,
         last_used_at: Optional[datetime] = None,
         expires_at: Optional[datetime] = None,
-        **kwargs
+        **kwargs,
     ) -> ApiKey:
         """Create an ApiKey for testing."""
         return ApiKey(
@@ -97,7 +97,7 @@ class ApiKeyFactory:
             is_active=is_active,
             last_used_at=last_used_at,
             expires_at=expires_at,
-            **kwargs
+            **kwargs,
         )
 
     @staticmethod
@@ -110,7 +110,7 @@ class ApiKeyFactory:
         is_active: bool = True,
         last_used_at: Optional[datetime] = None,
         expires_at: Optional[datetime] = None,
-        **kwargs
+        **kwargs,
     ) -> Mock:
         """Create a mock ApiKey for testing."""
         mock_key = Mock(spec=ApiKey)
@@ -124,16 +124,16 @@ class ApiKeyFactory:
         mock_key.expires_at = expires_at
         mock_key.created_at = datetime.utcnow()
         mock_key.updated_at = datetime.utcnow()
-        
+
         # Mock methods
         mock_key.is_expired = Mock(return_value=False)
         mock_key.update_last_used = Mock()
         mock_key.get_prefix = Mock(return_value=key_prefix)
-        
+
         # Apply any additional kwargs
         for key, value in kwargs.items():
             setattr(mock_key, key, value)
-        
+
         return mock_key
 
     @staticmethod
@@ -141,17 +141,17 @@ class ApiKeyFactory:
         """Generate a test API key and its hash."""
         import hashlib
         import secrets
-        
+
         key = secrets.token_urlsafe(32)
         full_key = f"abk_live_{key}"
         key_hash = hashlib.sha256(full_key.encode()).hexdigest()
-        
+
         return full_key, key_hash
 
 
 class UserFactory:
     """Factory for creating test User objects."""
-    
+
     @staticmethod
     def create_system_user(
         id: int = 1,
@@ -162,7 +162,7 @@ class UserFactory:
         last_name: str = "User",
         credits: int = 100,
         is_active: bool = True,
-        **kwargs
+        **kwargs,
     ) -> User:
         """Create a User with system authentication."""
         return User(
@@ -175,7 +175,7 @@ class UserFactory:
             last_name=last_name,
             credits=credits,
             is_active=is_active,
-            **kwargs
+            **kwargs,
         )
 
     @staticmethod
@@ -188,7 +188,7 @@ class UserFactory:
         last_name: str = "User",
         credits: int = 100,
         is_active: bool = True,
-        **kwargs
+        **kwargs,
     ) -> User:
         """Create a User with Clerk authentication."""
         return User(
@@ -201,7 +201,7 @@ class UserFactory:
             last_name=last_name,
             credits=credits,
             is_active=is_active,
-            **kwargs
+            **kwargs,
         )
 
     @staticmethod
@@ -216,7 +216,7 @@ class UserFactory:
         last_name: str = "User",
         credits: int = 100,
         is_active: bool = True,
-        **kwargs
+        **kwargs,
     ) -> Mock:
         """Create a mock User for testing."""
         mock_user = Mock(spec=User)
@@ -232,17 +232,17 @@ class UserFactory:
         mock_user.is_active = is_active
         mock_user.created_at = datetime.utcnow()
         mock_user.updated_at = datetime.utcnow()
-        
+
         # Apply any additional kwargs
         for key, value in kwargs.items():
             setattr(mock_user, key, value)
-        
+
         return mock_user
 
 
 class AuthTestData:
     """Test data for authentication scenarios."""
-    
+
     # Valid registration data
     VALID_REGISTRATION_DATA = [
         {
@@ -250,79 +250,79 @@ class AuthTestData:
             "email": "test1@example.com",
             "password": "SecurePassword123!",
             "first_name": "Test",
-            "last_name": "User"
+            "last_name": "User",
         },
         {
             "username": "testuser2",
             "email": "test2@example.com",
             "password": "AnotherSecure456!",
             "first_name": "Another",
-            "last_name": "User"
-        }
+            "last_name": "User",
+        },
     ]
-    
+
     # Invalid registration data
     INVALID_REGISTRATION_DATA = [
         {
             "username": "",
             "email": "test@example.com",
             "password": "validpass123",
-            "error": "Username cannot be empty"
+            "error": "Username cannot be empty",
         },
         {
             "username": "test",
             "email": "invalid-email",
             "password": "validpass123",
-            "error": "Invalid email format"
+            "error": "Invalid email format",
         },
         {
             "username": "test",
             "email": "test@example.com",
             "password": "123",
-            "error": "Password too short"
+            "error": "Password too short",
         },
         {
             "username": "test",
             "email": "test@example.com",
             "password": "",
-            "error": "Password cannot be empty"
-        }
+            "error": "Password cannot be empty",
+        },
     ]
-    
+
     # Valid login data
     VALID_LOGIN_DATA = [
         {"username": "testuser1", "password": "SecurePassword123!"},
-        {"username": "testuser2", "password": "AnotherSecure456!"}
+        {"username": "testuser2", "password": "AnotherSecure456!"},
     ]
-    
+
     # Invalid login data
     INVALID_LOGIN_DATA = [
         {"username": "nonexistent", "password": "validpass123"},
         {"username": "testuser1", "password": "wrongpassword"},
         {"username": "", "password": "validpass123"},
-        {"username": "testuser1", "password": ""}
+        {"username": "testuser1", "password": ""},
     ]
-    
+
     # Valid API key data
     VALID_API_KEY_DATA = [
         {"name": "Production Key", "expires_at": None},
         {"name": "Development Key", "expires_at": "2025-12-31T23:59:59Z"},
-        {"name": "Test Key", "expires_at": "2024-12-31T23:59:59Z"}
+        {"name": "Test Key", "expires_at": "2024-12-31T23:59:59Z"},
     ]
-    
+
     # Invalid API key data
     INVALID_API_KEY_DATA = [
         {"name": "", "expires_at": None},
         {"name": "a" * 101, "expires_at": None},  # Too long
-        {"name": "Valid Name", "expires_at": "invalid-date"}
+        {"name": "Valid Name", "expires_at": "invalid-date"},
     ]
-    
+
     # Test API keys
     VALID_API_KEYS = [
         "abk_live_" + "x" * 43,  # Valid format
         "abk_live_" + "y" * 43,  # Another valid format
     ]
-    
+
     # Invalid API keys
     INVALID_API_KEYS = [
         "invalid_format",
@@ -335,39 +335,35 @@ class AuthTestData:
 
 class AuthTestHelpers:
     """Helper functions for authentication tests."""
-    
+
     @staticmethod
     def create_test_database_session():
         """Create a test database session."""
         from sqlalchemy import create_engine
         from sqlalchemy.orm import sessionmaker
         from api.database import Base
-        
+
         # Create in-memory SQLite database for testing
         engine = create_engine("sqlite:///:memory:")
         Base.metadata.create_all(engine)
-        
+
         TestSession = sessionmaker(bind=engine)
         return TestSession()
-    
+
     @staticmethod
     def create_auth_headers(api_key: str) -> Dict[str, str]:
         """Create authentication headers for API requests."""
-        return {
-            "X-API-Key": api_key,
-            "Content-Type": "application/json"
-        }
-    
+        return {"X-API-Key": api_key, "Content-Type": "application/json"}
+
     @staticmethod
     def create_bearer_headers(token: str) -> Dict[str, str]:
         """Create Bearer token headers for API requests."""
-        return {
-            "Authorization": f"Bearer {token}",
-            "Content-Type": "application/json"
-        }
-    
+        return {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+
     @staticmethod
-    def assert_user_response(response_data: Dict[str, Any], expected_user: Dict[str, Any]):
+    def assert_user_response(
+        response_data: Dict[str, Any], expected_user: Dict[str, Any]
+    ):
         """Assert that a user response matches expected data."""
         assert response_data["id"] == expected_user["id"]
         assert response_data["username"] == expected_user["username"]
@@ -377,9 +373,11 @@ class AuthTestHelpers:
         assert response_data["is_active"] == expected_user["is_active"]
         assert "created_at" in response_data
         assert "updated_at" in response_data
-    
+
     @staticmethod
-    def assert_api_key_response(response_data: Dict[str, Any], expected_key: Dict[str, Any]):
+    def assert_api_key_response(
+        response_data: Dict[str, Any], expected_key: Dict[str, Any]
+    ):
         """Assert that an API key response matches expected data."""
         assert response_data["id"] == expected_key["id"]
         assert response_data["name"] == expected_key["name"]
@@ -387,13 +385,13 @@ class AuthTestHelpers:
         assert response_data["is_active"] == expected_key["is_active"]
         assert "created_at" in response_data
         assert "updated_at" in response_data
-    
+
     @staticmethod
     def create_expired_api_key() -> tuple[str, str]:
         """Create an expired API key for testing."""
         full_key, key_hash = ApiKeyFactory.generate_test_api_key()
         return full_key, key_hash
-    
+
     @staticmethod
     def create_inactive_api_key() -> tuple[str, str]:
         """Create an inactive API key for testing."""

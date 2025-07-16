@@ -1,6 +1,8 @@
 .PHONY: help format backend frontend all clean install-backend install-frontend install test lint typecheck
 
-# Default target - show help
+# Default target - show help when no target is specified
+.DEFAULT_GOAL := help
+
 help:
 	@echo "AutoBlogger Makefile"
 	@echo "===================="
@@ -20,7 +22,7 @@ help:
 	@echo "  clean         - Clean build artifacts and dependencies"
 	@echo ""
 	@echo "Requirements:"
-	@echo "  - Backend environment file: backend/.env (copy from backend/env.example)"
+	@echo "  - Backend environment file: src/.env (create manually with required API keys)"
 	@echo "  - Required API keys: OPENAI_API_KEY, TAVILY_API_KEY, CLERK_SECRET_KEY"
 	@echo ""
 	@echo "Services:"
@@ -31,18 +33,18 @@ help:
 # Format all backend Python files
 format:
 	@echo "Formatting backend Python files..."
-	cd backend && uv run ruff format .
+	cd src && uv run ruff format .
 	@echo "✓ Backend formatting complete"
 
 # Start only the backend API server
 backend:
 	@echo "Starting backend API server..."
-	@if [ ! -f backend/.env ]; then \
-		echo "❌ Error: backend/.env file not found"; \
-		echo "Please copy backend/env.example to backend/.env and configure your API keys"; \
+	@if [ ! -f src/.env ]; then \
+		echo "❌ Error: src/.env file not found"; \
+		echo "Please copy src/env.example to src/.env and configure your API keys"; \
 		exit 1; \
 	fi
-	cd backend && uv run python scripts/run_api.py
+	cd src && uv run python scripts/run_api.py
 
 # Start only the frontend development server
 frontend:
@@ -56,9 +58,9 @@ frontend:
 # Start both backend and frontend
 all:
 	@echo "Starting AutoBlogger (backend + frontend)..."
-	@if [ ! -f backend/.env ]; then \
-		echo "❌ Error: backend/.env file not found"; \
-		echo "Please copy backend/env.example to backend/.env and configure your API keys"; \
+	@if [ ! -f src/.env ]; then \
+		echo "❌ Error: src/.env file not found"; \
+		echo "Please copy src/env.example to src/.env and configure your API keys"; \
 		exit 1; \
 	fi
 	./start.sh
@@ -70,7 +72,7 @@ install: install-backend install-frontend
 # Install backend dependencies
 install-backend:
 	@echo "Installing backend dependencies..."
-	cd backend && uv sync
+	cd src && uv sync
 	@echo "✓ Backend dependencies installed"
 
 # Install frontend dependencies  
@@ -82,30 +84,30 @@ install-frontend:
 # Clean build artifacts and dependencies
 clean:
 	@echo "Cleaning build artifacts..."
-	rm -rf backend/.venv
-	rm -rf backend/__pycache__
-	rm -rf backend/**/__pycache__
+	rm -rf src/.venv
+	rm -rf src/__pycache__
+	rm -rf src/**/__pycache__
 	rm -rf frontend/node_modules
 	rm -rf frontend/.next
-	rm -rf backend/htmlcov
-	rm -rf backend/coverage.xml
-	rm -rf backend/pytest-report.xml
+	rm -rf src/htmlcov
+	rm -rf src/coverage.xml
+	rm -rf src/pytest-report.xml
 	@echo "✓ Clean complete"
 
 # Run backend tests
 test:
 	@echo "Running backend tests..."
-	cd backend && uv run python scripts/run_tests.py
+	cd src && uv run python scripts/run_tests.py
 	@echo "✓ Backend tests complete"
 
 # Run linting on backend code
 lint:
 	@echo "Running backend linting..."
-	cd backend && uv run ruff check .
+	cd src && uv run ruff check .
 	@echo "✓ Backend linting complete"
 
 # Run type checking on backend code
 typecheck:
 	@echo "Running backend type checking..."
-	cd backend && uv run mypy .
+	cd src && uv run mypy .
 	@echo "✓ Backend type checking complete"

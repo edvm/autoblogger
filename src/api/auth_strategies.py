@@ -34,7 +34,7 @@ from .database import ApiKey, AuthType, SystemUser, User
 
 class AuthResult:
     """Result of authentication attempt."""
-    
+
     def __init__(self, user: User, auth_type: AuthType, metadata: dict = None):
         self.user = user
         self.auth_type = auth_type
@@ -43,12 +43,12 @@ class AuthResult:
 
 class AuthStrategy(ABC):
     """Abstract base class for authentication strategies."""
-    
+
     @abstractmethod
     async def authenticate(self, request: Request, db: Session) -> AuthResult:
         """Authenticate a request and return user information."""
         pass
-    
+
     @abstractmethod
     def get_auth_type(self) -> AuthType:
         """Get the authentication type this strategy handles."""
@@ -57,13 +57,13 @@ class AuthStrategy(ABC):
 
 class ClerkAuthStrategy(AuthStrategy):
     """Clerk-based authentication strategy."""
-    
+
     def __init__(self):
         self.clerk_client = Clerk(bearer_auth=CLERK_SECRET_KEY)
-    
+
     def get_auth_type(self) -> AuthType:
         return AuthType.CLERK
-    
+
     async def authenticate(self, request: Request, db: Session) -> AuthResult:
         """Authenticate using Clerk JWT token."""
         try:
@@ -77,20 +77,18 @@ class ClerkAuthStrategy(AuthStrategy):
         except Exception as e:
             logger.error(f"Failed to authenticate Clerk request: {e}")
             raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED, 
-                detail="Clerk authentication failed"
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Clerk authentication failed",
             ) from e
 
         if not request_state.is_signed_in:
             raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED, 
-                detail="User is not signed in"
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="User is not signed in"
             )
 
         if not request_state.payload:
             raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED, 
-                detail="Payload is not found"
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="Payload is not found"
             )
 
         payload = request_state.payload
@@ -112,8 +110,7 @@ class ClerkAuthStrategy(AuthStrategy):
 
         if not user_response:
             raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED, 
-                detail="User not found"
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found"
             )
 
         # Extract email
@@ -131,8 +128,7 @@ class ClerkAuthStrategy(AuthStrategy):
 
         if not email:
             raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED, 
-                detail="User email not found"
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="User email not found"
             )
 
         # Get or create user in our database
@@ -140,9 +136,13 @@ class ClerkAuthStrategy(AuthStrategy):
 
         if not db_user:
             # Create new Clerk user
-            first_name = None if not user_response.first_name else str(user_response.first_name)
-            last_name = None if not user_response.last_name else str(user_response.last_name)
-            
+            first_name = (
+                None if not user_response.first_name else str(user_response.first_name)
+            )
+            last_name = (
+                None if not user_response.last_name else str(user_response.last_name)
+            )
+
             db_user = User(
                 auth_type=AuthType.CLERK,
                 clerk_user_id=user_id,
@@ -158,73 +158,69 @@ class ClerkAuthStrategy(AuthStrategy):
 
         if not db_user.is_active:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, 
-                detail="Inactive user"
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Inactive user"
             )
 
         return AuthResult(
-            user=db_user,
-            auth_type=AuthType.CLERK,
-            metadata={"clerk_user_id": user_id}
+            user=db_user, auth_type=AuthType.CLERK, metadata={"clerk_user_id": user_id}
         )
 
 
 class ApiKeyAuthStrategy(AuthStrategy):
     """API key-based authentication strategy."""
-    
+
     def get_auth_type(self) -> AuthType:
         return AuthType.SYSTEM
-    
+
     async def authenticate(self, request: Request, db: Session) -> AuthResult:
         """Authenticate using API key."""
         # Get API key from X-API-Key header
         api_key = request.headers.get("X-API-Key")
-        
+
         if not api_key:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="X-API-Key header is required"
+                detail="X-API-Key header is required",
             )
-        
+
         if not api_key.startswith("abk_live_"):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid API key format"
+                detail="Invalid API key format",
             )
-        
+
         # Hash the key for database lookup
         key_hash = ApiKey.hash_key(api_key)
-        
+
         # Find the API key in database
-        api_key_obj = db.query(ApiKey).filter(
-            ApiKey.key_hash == key_hash,
-            ApiKey.is_active == True
-        ).first()
-        
+        api_key_obj = (
+            db.query(ApiKey)
+            .filter(ApiKey.key_hash == key_hash, ApiKey.is_active == True)
+            .first()
+        )
+
         if not api_key_obj:
             raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid API key"
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid API key"
             )
-        
+
         # Check if key is expired
         if api_key_obj.is_expired():
             raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="API key has expired"
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="API key has expired"
             )
-        
+
         # Get the system user
         system_user = api_key_obj.system_user
         if not system_user or not system_user.is_active:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="User account is inactive"
+                detail="User account is inactive",
             )
-        
+
         # Get or create the User record
         db_user = db.query(User).filter(User.system_user_id == system_user.id).first()
-        
+
         if not db_user:
             # Create new system user record
             db_user = User(
@@ -240,53 +236,53 @@ class ApiKeyAuthStrategy(AuthStrategy):
             db.commit()
             db.refresh(db_user)
             logger.info(f"Created new system user: {system_user.email}")
-        
+
         if not db_user.is_active:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="User account is inactive"
+                detail="User account is inactive",
             )
-        
+
         # Update last used timestamp
         api_key_obj.update_last_used()
         db.commit()
-        
+
         return AuthResult(
             user=db_user,
             auth_type=AuthType.SYSTEM,
             metadata={
                 "api_key_id": api_key_obj.id,
                 "api_key_name": api_key_obj.name,
-                "system_user_id": system_user.id
-            }
+                "system_user_id": system_user.id,
+            },
         )
 
 
 class AuthStrategyManager:
     """Manager for handling different authentication strategies."""
-    
+
     def __init__(self):
         self.strategies = {
             AuthType.CLERK: ClerkAuthStrategy(),
             AuthType.SYSTEM: ApiKeyAuthStrategy(),
         }
-    
+
     async def authenticate(self, request: Request, db: Session) -> AuthResult:
         """Try to authenticate using available strategies."""
         # Try API key first (check for X-API-Key header)
         if request.headers.get("X-API-Key"):
             return await self.strategies[AuthType.SYSTEM].authenticate(request, db)
-        
+
         # Try Clerk authentication (check for Authorization header)
         if request.headers.get("Authorization"):
             return await self.strategies[AuthType.CLERK].authenticate(request, db)
-        
+
         # No authentication method found
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="No authentication method provided. Use 'X-API-Key' or 'Authorization' header."
+            detail="No authentication method provided. Use 'X-API-Key' or 'Authorization' header.",
         )
-    
+
     def get_strategy(self, auth_type: AuthType) -> AuthStrategy:
         """Get a specific authentication strategy."""
         return self.strategies.get(auth_type)

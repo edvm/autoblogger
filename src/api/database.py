@@ -43,8 +43,10 @@ import secrets
 
 class AuthType(enum.Enum):
     """Authentication type enumeration."""
+
     CLERK = "clerk"
     SYSTEM = "system"
+
 
 # Database URL - SQLite for development
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./autoblogger.db")
@@ -69,8 +71,12 @@ class User(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     auth_type = Column(Enum(AuthType), default=AuthType.CLERK, nullable=False)
-    clerk_user_id = Column(String, unique=True, index=True, nullable=True)  # Only for Clerk users
-    system_user_id = Column(Integer, ForeignKey("system_users.id"), nullable=True)  # Only for system users
+    clerk_user_id = Column(
+        String, unique=True, index=True, nullable=True
+    )  # Only for Clerk users
+    system_user_id = Column(
+        Integer, ForeignKey("system_users.id"), nullable=True
+    )  # Only for system users
     email = Column(String, unique=True, index=True, nullable=False)
     username = Column(String, unique=True, index=True, nullable=True)
     first_name = Column(String, nullable=True)
@@ -149,12 +155,18 @@ class SystemUser(Base):
     def set_password(self, password: str):
         """Set password with hashing."""
         import bcrypt
-        self.password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+        self.password_hash = bcrypt.hashpw(
+            password.encode("utf-8"), bcrypt.gensalt()
+        ).decode("utf-8")
 
     def verify_password(self, password: str) -> bool:
         """Verify password against hash."""
         import bcrypt
-        return bcrypt.checkpw(password.encode('utf-8'), self.password_hash.encode('utf-8'))
+
+        return bcrypt.checkpw(
+            password.encode("utf-8"), self.password_hash.encode("utf-8")
+        )
 
 
 class ApiKey(Base):
@@ -182,10 +194,10 @@ class ApiKey(Base):
         # Generate secure random key
         key = secrets.token_urlsafe(32)
         full_key = f"abk_live_{key}"
-        
+
         # Create hash for storage
         key_hash = hashlib.sha256(full_key.encode()).hexdigest()
-        
+
         return full_key, key_hash
 
     @staticmethod

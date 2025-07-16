@@ -14,22 +14,22 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Check if .env file exists in backend directory
-if [ ! -f "backend/.env" ]; then
-    echo -e "${RED}❌ Error: backend/.env file not found${NC}"
-    echo -e "${YELLOW}Please create backend/.env file with the following variables:${NC}"
+# Check if .env file exists in src directory
+if [ ! -f "src/.env" ]; then
+    echo -e "${RED}❌ Error: src/.env file not found${NC}"
+    echo -e "${YELLOW}Please create src/.env file with the following variables:${NC}"
     echo "OPENAI_API_KEY=your_openai_key_here"
     echo "TAVILY_API_KEY=your_tavily_key_here"
     echo "CLERK_SECRET_KEY=your_clerk_secret_key_here"
     echo "CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key_here"
     echo ""
-    echo -e "${BLUE}You can copy from backend/env.example and fill in your values${NC}"
+    echo -e "${BLUE}You can copy from src/env.example and fill in your values${NC}"
     exit 1
 fi
 
 # Load backend environment variables
 echo -e "${BLUE}📦 Loading backend environment variables...${NC}"
-export $(grep -v '^#' backend/.env | xargs)
+export $(grep -v '^#' src/.env | xargs)
 
 # Backend environment variables
 echo -e "${GREEN}✅ Backend environment variables loaded${NC}"
@@ -49,7 +49,7 @@ trap cleanup SIGINT SIGTERM
 
 # Start backend
 echo -e "${BLUE}🔧 Starting backend API server...${NC}"
-cd backend
+cd src
 uv run python scripts/run_api.py &
 BACKEND_PID=$!
 cd ..

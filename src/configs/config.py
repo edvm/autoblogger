@@ -53,7 +53,9 @@ ENABLE_SYSTEM_AUTH = os.getenv("ENABLE_SYSTEM_AUTH", "true").lower() == "true"
 CLERK_SECRET_KEY = os.getenv("CLERK_SECRET_KEY")
 
 # System authentication configuration
-SYSTEM_AUTH_SECRET_KEY = os.getenv("SYSTEM_AUTH_SECRET_KEY", "your-secret-key-change-in-production")
+SYSTEM_AUTH_SECRET_KEY = os.getenv(
+    "SYSTEM_AUTH_SECRET_KEY", "your-secret-key-change-in-production"
+)
 API_KEY_EXPIRATION_DAYS = int(os.getenv("API_KEY_EXPIRATION_DAYS", "365"))
 
 # Security configuration
