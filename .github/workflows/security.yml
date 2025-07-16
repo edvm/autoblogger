@@ -36,7 +36,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./backend
+        working-directory: ./src
     
     steps:
     - name: Checkout Repository
@@ -88,8 +88,8 @@ jobs:
       with:
         name: python-security-reports
         path: |
-          backend/bandit-report.json
-          backend/safety-report.json
+          src/bandit-report.json
+          src/safety-report.json
           semgrep.sarif
         retention-days: 30
 
@@ -148,7 +148,7 @@ jobs:
     
     - name: Build Backend Docker Image
       run: |
-        docker build -t autoblogger/backend:security-scan ./backend || echo "Backend Dockerfile not found"
+        docker build -t autoblogger/backend:security-scan ./src || echo "Backend Dockerfile not found"
     
     - name: Build Frontend Docker Image  
       run: |

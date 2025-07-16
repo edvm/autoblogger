@@ -25,7 +25,7 @@ jobs:
     
     defaults:
       run:
-        working-directory: ./backend
+        working-directory: ./src
     
     steps:
     - name: Checkout code
@@ -40,7 +40,7 @@ jobs:
       uses: astral-sh/setup-uv@v6
       with:
         enable-cache: true
-        cache-dependency-glob: "backend/uv.lock"
+        cache-dependency-glob: "src/uv.lock"
     
     - name: Install dependencies
       run: |
@@ -81,7 +81,7 @@ jobs:
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4
       with:
-        file: ./backend/coverage.xml
+        file: ./src/coverage.xml
         flags: backend
         name: backend-${{ matrix.python-version }}-${{ matrix.llm-provider }}
         token: ${{ secrets.CODECOV_TOKEN }}
@@ -93,9 +93,9 @@ jobs:
       with:
         name: backend-test-results-${{ matrix.python-version }}-${{ matrix.llm-provider }}
         path: |
-          backend/htmlcov/
-          backend/coverage.xml
-          backend/pytest-report.xml
+          src/htmlcov/
+          src/coverage.xml
+          src/pytest-report.xml
         retention-days: ${{ github.event_name == 'pull_request' && 7 || 30 }}
 
 
@@ -135,7 +135,7 @@ jobs:
     - name: Check for documentation updates
       run: |
         # Check if backend changes require documentation updates
-        BACKEND_CHANGES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '^backend/(api|apps)/' || true)
+        BACKEND_CHANGES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '^src/(api|apps)/' || true)
         DOC_CHANGES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '\.(md|rst)$' || true)
         
         if [ -n "$BACKEND_CHANGES" ] && [ -z "$DOC_CHANGES" ]; then
@@ -145,7 +145,7 @@ jobs:
     - name: Dependency vulnerability check
       run: |
         # Check if new dependencies were added
-        PYPROJECT_CHANGES=$(git diff origin/${{ github.base_ref }}...HEAD backend/pyproject.toml | grep '^+' | grep -v '^+++' || true)
+        PYPROJECT_CHANGES=$(git diff origin/${{ github.base_ref }}...HEAD src/pyproject.toml | grep '^+' | grep -v '^+++' || true)
         PACKAGE_CHANGES=$(git diff origin/${{ github.base_ref }}...HEAD frontend/package.json | grep '^+' | grep -v '^+++' || true)
         
         if [ -n "$PYPROJECT_CHANGES" ]; then
@@ -159,7 +159,7 @@ jobs:
     - name: API contract validation
       run: |
         # Check if API routes were modified
-        API_CHANGES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '^backend/api/' || true)
+        API_CHANGES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '^src/api/' || true)
         
         if [ -n "$API_CHANGES" ]; then
           echo "API changes detected in: $API_CHANGES"
@@ -200,7 +200,7 @@ jobs:
         LABELS=()
         
         # Check for backend changes
-        if echo "$CHANGED_FILES" | grep -q '^backend/'; then
+        if echo "$CHANGED_FILES" | grep -q '^src/'; then
           LABELS+=("backend")
         fi
         
@@ -255,11 +255,11 @@ jobs:
     
     - name: Run Bandit security scan on Python code
       run: |
-        bandit -r backend/ -f json -o bandit-report.json
+        bandit -r src/ -f json -o bandit-report.json
       continue-on-error: true
     
     - name: Run Safety check for Python dependencies
-      working-directory: ./backend
+      working-directory: ./src
       run: |
         pip install -r requirements.txt
         safety check --json --output safety-report.json
@@ -272,7 +272,7 @@ jobs:
         name: security-reports
         path: |
           bandit-report.json
-          backend/safety-report.json
+          src/safety-report.json
         retention-days: ${{ github.event_name == 'pull_request' && 7 || 30 }}
 
   # CodeQL Security Analysis
@@ -341,8 +341,8 @@ jobs:
   #   - name: Build backend Docker image
   #     uses: docker/build-push-action@v5
   #     with:
-  #       context: ./backend
-  #       file: ./backend/Dockerfile
+  #       context: ./src
+  #       file: ./src/Dockerfile
   #       platforms: linux/amd64,linux/arm64
   #       push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
   #       tags: ${{ steps.meta-backend.outputs.tags }}
@@ -388,22 +388,22 @@ jobs:
       uses: astral-sh/setup-uv@v6
     
     - name: Install backend dependencies
-      working-directory: ./backend
+      working-directory: ./src
       run: uv sync --frozen
     
     
     - name: Run integration tests
       run: |
         # Start backend in background
-        cd backend && LLM_PROVIDER=openai OPENAI_API_KEY=test-key uv run python run_api.py &
+        cd src && LLM_PROVIDER=openai OPENAI_API_KEY=test-key uv run python scripts/run_api.py &
         BACKEND_PID=$!
         
         # Wait for backend to start
         sleep 10
         
         # Run integration tests (if they exist)
-        if [ -f backend/tests/test_integration.py ]; then
-          cd backend && uv run pytest tests/test_integration.py -v
+        if [ -f src/tests/test_integration.py ]; then
+          cd src && uv run pytest tests/test_integration.py -v
         else
           echo "No integration tests found, skipping"
         fi
