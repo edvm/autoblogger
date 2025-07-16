@@ -17,8 +17,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 from abc import ABC, abstractmethod
-from datetime import datetime
-from typing import Optional
 
 from clerk_backend_api import AuthenticateRequestOptions, Clerk
 from fastapi import HTTPException, Request, status
@@ -27,7 +25,7 @@ from sqlalchemy.orm import Session
 from configs.config import CLERK_SECRET_KEY
 from configs.logging_config import logger
 
-from .database import ApiKey, AuthType, SystemUser, User
+from .database import ApiKey, AuthType, User
 
 """Authentication strategy pattern for multiple auth methods."""
 

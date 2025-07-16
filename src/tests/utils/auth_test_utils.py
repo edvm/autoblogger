@@ -3,10 +3,10 @@ Authentication test utilities for AutoBlogger backend tests.
 """
 
 from datetime import datetime, timedelta
-from typing import Dict, Optional, Any
+from typing import Any, Dict, Optional
 from unittest.mock import Mock
 
-from api.database import SystemUser, ApiKey, User, AuthType
+from api.database import ApiKey, AuthType, SystemUser, User
 
 """Test utilities for authentication system."""
 
@@ -83,8 +83,8 @@ class ApiKeyFactory:
         key_hash: str = "test_key_hash",
         key_prefix: str = "abk_live_test",
         is_active: bool = True,
-        last_used_at: Optional[datetime] = None,
-        expires_at: Optional[datetime] = None,
+        last_used_at: datetime | None = None,
+        expires_at: datetime | None = None,
         **kwargs,
     ) -> ApiKey:
         """Create an ApiKey for testing."""
@@ -108,8 +108,8 @@ class ApiKeyFactory:
         key_hash: str = "test_key_hash",
         key_prefix: str = "abk_live_test",
         is_active: bool = True,
-        last_used_at: Optional[datetime] = None,
-        expires_at: Optional[datetime] = None,
+        last_used_at: datetime | None = None,
+        expires_at: datetime | None = None,
         **kwargs,
     ) -> Mock:
         """Create a mock ApiKey for testing."""
@@ -208,8 +208,8 @@ class UserFactory:
     def create_mock_user(
         id: int = 1,
         auth_type: AuthType = AuthType.SYSTEM,
-        system_user_id: Optional[int] = 1,
-        clerk_user_id: Optional[str] = None,
+        system_user_id: int | None = 1,
+        clerk_user_id: str | None = None,
         email: str = "test@example.com",
         username: str = "testuser",
         first_name: str = "Test",
@@ -341,6 +341,7 @@ class AuthTestHelpers:
         """Create a test database session."""
         from sqlalchemy import create_engine
         from sqlalchemy.orm import sessionmaker
+
         from api.database import Base
 
         # Create in-memory SQLite database for testing
@@ -351,18 +352,18 @@ class AuthTestHelpers:
         return TestSession()
 
     @staticmethod
-    def create_auth_headers(api_key: str) -> Dict[str, str]:
+    def create_auth_headers(api_key: str) -> dict[str, str]:
         """Create authentication headers for API requests."""
         return {"X-API-Key": api_key, "Content-Type": "application/json"}
 
     @staticmethod
-    def create_bearer_headers(token: str) -> Dict[str, str]:
+    def create_bearer_headers(token: str) -> dict[str, str]:
         """Create Bearer token headers for API requests."""
         return {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
 
     @staticmethod
     def assert_user_response(
-        response_data: Dict[str, Any], expected_user: Dict[str, Any]
+        response_data: dict[str, Any], expected_user: dict[str, Any]
     ):
         """Assert that a user response matches expected data."""
         assert response_data["id"] == expected_user["id"]
@@ -376,7 +377,7 @@ class AuthTestHelpers:
 
     @staticmethod
     def assert_api_key_response(
-        response_data: Dict[str, Any], expected_key: Dict[str, Any]
+        response_data: dict[str, Any], expected_key: dict[str, Any]
     ):
         """Assert that an API key response matches expected data."""
         assert response_data["id"] == expected_key["id"]

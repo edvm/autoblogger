@@ -16,7 +16,10 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+import enum
+import hashlib
 import os
+import secrets
 from collections.abc import Generator
 from datetime import datetime
 from typing import Any
@@ -32,11 +35,8 @@ from sqlalchemy import (
     Text,
     create_engine,
 )
-import enum
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session, relationship, sessionmaker
-import hashlib
-import secrets
 
 """Database configuration and models for AutoBlogger API."""
 

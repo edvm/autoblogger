@@ -3,10 +3,8 @@
 Test script to verify the new authentication system works.
 """
 
-import json
+
 import requests
-import time
-from typing import Dict, Any
 
 API_BASE_URL = "http://localhost:8000"
 

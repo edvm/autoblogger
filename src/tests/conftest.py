@@ -26,10 +26,10 @@ from agents.editor_agent import EditorAgent
 from agents.manager_agent import BloggerManagerAgent
 from agents.research_agent import ResearchAgent
 from agents.writing_agent import WritingAgent
+from api.auth_strategies import AuthResult, AuthStrategyManager
 
 # Removed ClerkUser as it's no longer in api.auth
-from api.database import User, SystemUser, ApiKey, AuthType
-from api.auth_strategies import AuthResult, AuthStrategyManager
+from api.database import ApiKey, AuthType, SystemUser, User
 from core.llm_services import LLMService, LLMServiceResponse, LLMUsage
 from core.state import WokflowType, WorkflowState
 from tools.search import SearchConfig, SearchDepth, SearchTopic, TimeRange
@@ -466,6 +466,7 @@ def test_database_session():
     """Fixture providing an in-memory test database session."""
     from sqlalchemy import create_engine
     from sqlalchemy.orm import sessionmaker
+
     from api.database import Base
 
     # Create in-memory SQLite database for testing
@@ -565,10 +566,11 @@ def test_api_key_pair():
 @pytest.fixture
 def authenticated_api_key_client():
     """Fixture providing an authenticated test client using API key."""
+    from fastapi.testclient import TestClient
+
     from api.auth import get_current_user
     from api.database import get_db
     from api.main import app
-    from fastapi.testclient import TestClient
     from tests.utils.auth_test_utils import UserFactory
 
     # Create a system user for testing
@@ -595,10 +597,11 @@ def authenticated_api_key_client():
 @pytest.fixture
 def authenticated_clerk_client():
     """Fixture providing an authenticated test client using Clerk."""
+    from fastapi.testclient import TestClient
+
     from api.auth import get_current_user
     from api.database import get_db
     from api.main import app
-    from fastapi.testclient import TestClient
     from tests.utils.auth_test_utils import UserFactory
 
     # Create a Clerk user for testing

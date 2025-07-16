@@ -2,20 +2,21 @@
 Security tests for authentication system.
 """
 
-import pytest
 import hashlib
 import secrets
 from datetime import datetime, timedelta
 from unittest.mock import Mock, patch
+
+import pytest
 from fastapi.testclient import TestClient
 
+from api.database import ApiKey, AuthType, SystemUser
 from api.main import app
-from api.database import SystemUser, ApiKey, AuthType
 from tests.utils.auth_test_utils import (
-    SystemUserFactory,
     ApiKeyFactory,
     AuthTestData,
     AuthTestHelpers,
+    SystemUserFactory,
 )
 
 """Security-focused tests for authentication system."""

@@ -17,9 +17,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 from datetime import datetime, timedelta
-from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy.orm import Session
 
@@ -40,8 +39,8 @@ class SystemUserCreate(BaseModel):
     username: str = Field(..., min_length=3, max_length=50)
     email: EmailStr
     password: str = Field(..., min_length=8, max_length=100)
-    first_name: Optional[str] = Field(None, max_length=50)
-    last_name: Optional[str] = Field(None, max_length=50)
+    first_name: str | None = Field(None, max_length=50)
+    last_name: str | None = Field(None, max_length=50)
 
 
 class SystemUserLogin(BaseModel):
@@ -57,8 +56,8 @@ class SystemUserResponse(BaseModel):
     id: int
     username: str
     email: str
-    first_name: Optional[str]
-    last_name: Optional[str]
+    first_name: str | None
+    last_name: str | None
     is_active: bool
     created_at: datetime
     updated_at: datetime
@@ -71,7 +70,7 @@ class ApiKeyCreate(BaseModel):
     """API key creation model."""
 
     name: str = Field(..., min_length=1, max_length=100)
-    expires_at: Optional[datetime] = None
+    expires_at: datetime | None = None
 
 
 class ApiKeyResponse(BaseModel):
@@ -81,8 +80,8 @@ class ApiKeyResponse(BaseModel):
     name: str
     key_prefix: str
     is_active: bool
-    last_used_at: Optional[datetime]
-    expires_at: Optional[datetime]
+    last_used_at: datetime | None
+    expires_at: datetime | None
     created_at: datetime
     updated_at: datetime
 
@@ -98,7 +97,7 @@ class ApiKeyCreatedResponse(BaseModel):
     key_prefix: str
     full_key: str  # Only returned on creation
     is_active: bool
-    expires_at: Optional[datetime]
+    expires_at: datetime | None
     created_at: datetime
 
     class Config:

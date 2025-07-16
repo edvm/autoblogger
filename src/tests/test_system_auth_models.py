@@ -2,14 +2,15 @@
 Unit tests for authentication system database models.
 """
 
-import pytest
-from datetime import datetime, timedelta
-from unittest.mock import Mock, patch
 import hashlib
 import secrets
+from datetime import datetime, timedelta
+from unittest.mock import Mock, patch
 
-from api.database import SystemUser, ApiKey, User, AuthType
-from tests.utils.auth_test_utils import SystemUserFactory, ApiKeyFactory, UserFactory
+import pytest
+
+from api.database import ApiKey, AuthType, SystemUser, User
+from tests.utils.auth_test_utils import ApiKeyFactory, SystemUserFactory, UserFactory
 
 """Tests for SystemUser, ApiKey, and User models."""
 

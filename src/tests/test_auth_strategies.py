@@ -2,20 +2,21 @@
 Unit tests for authentication strategies.
 """
 
-import pytest
 from datetime import datetime, timedelta
-from unittest.mock import Mock, patch, AsyncMock
+from unittest.mock import AsyncMock, Mock, patch
+
+import pytest
 from fastapi import HTTPException, Request
 
 from api.auth_strategies import (
-    AuthStrategy,
-    AuthResult,
-    ClerkAuthStrategy,
     ApiKeyAuthStrategy,
+    AuthResult,
+    AuthStrategy,
     AuthStrategyManager,
+    ClerkAuthStrategy,
 )
-from api.database import AuthType, User, SystemUser, ApiKey
-from tests.utils.auth_test_utils import UserFactory, SystemUserFactory, ApiKeyFactory
+from api.database import ApiKey, AuthType, SystemUser, User
+from tests.utils.auth_test_utils import ApiKeyFactory, SystemUserFactory, UserFactory
 
 """Tests for authentication strategies."""
 

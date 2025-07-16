@@ -4,8 +4,8 @@ Database initialization script for AutoBlogger.
 This script creates all necessary database tables.
 """
 
-import sys
 import os
+import sys
 
 # Add the backend directory to the Python path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))

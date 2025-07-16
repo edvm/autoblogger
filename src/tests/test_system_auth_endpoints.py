@@ -2,19 +2,20 @@
 Integration tests for system authentication endpoints.
 """
 
-import pytest
 from datetime import datetime, timedelta
 from unittest.mock import Mock, patch
+
+import pytest
 from fastapi.testclient import TestClient
 
+from api.database import ApiKey, AuthType, SystemUser, User
 from api.main import app
-from api.database import SystemUser, ApiKey, User, AuthType
 from tests.utils.auth_test_utils import (
-    SystemUserFactory,
     ApiKeyFactory,
-    UserFactory,
     AuthTestData,
     AuthTestHelpers,
+    SystemUserFactory,
+    UserFactory,
 )
 
 """Tests for system authentication API endpoints."""
