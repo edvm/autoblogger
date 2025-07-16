@@ -1,4 +1,4 @@
-# AutoBlogger Backend
+# AutoBlogger
 
 An AI-powered blog generation system that creates high-quality articles using web research and multi-agent processing.
 
