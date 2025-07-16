@@ -136,7 +136,7 @@ jobs:
           type=raw,value=${{ needs.create-release.outputs.version }},enable=${{ needs.create-release.outputs.version != '' }}
     
     - name: Build and push Docker image
-      uses: docker/build-push-action@v5
+      uses: docker/build-push-action@v6
       with:
         context: ${{ matrix.component == 'backend' && './src' || './frontend' }}
         file: ${{ matrix.component == 'backend' && './src/Dockerfile' || './frontend/Dockerfile' }}
